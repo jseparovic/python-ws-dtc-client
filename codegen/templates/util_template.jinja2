@@ -12,13 +12,12 @@ class MessageUtil:
         pass
 
     @staticmethod
-    def parse_incoming_message(message_text, pretty=True):
+    def parse_incoming_message(message_text):
         response = None
         message_obj = json.loads(message_text)
 
 {% for _class in classes %}        {% if not loop.first %}el{% endif %}if message_obj[TYPE] == MessageTypes.{{ _class._name|upper }}:
             response = {{ _class.__name }}.from_message(message_obj)
-            logging.info("Received {{ _class.__name }}:\n%s" % response.to_JSON(pretty=pretty))
 {% endfor %}
         return response
 

@@ -47,9 +47,27 @@ class DTCClient:
         logging.info("Sending %s:\n%s" % (message.get_message_type_name(), message.to_JSON(pretty=PRETTY)))
         self.ws.send(message.to_JSON() + '\x00')  # must be null terminated
 
+    def heartbeat_loop(self):
+        while True:
+            self.send(
+                Heartbeat(
+                    current_date_time=time.time(),
+                ))
+            time.sleep(int(HEARTBEAT*0.9))
+
     def on_message(self, message_text):
         message = MessageUtil.parse_incoming_message(message_text)
-        # do something with message here
+        logging.info("Received %s:\n%s" % (message.get_message_type_name(), message.to_JSON(pretty=PRETTY)))
+
+        if isinstance(message, LogonResponse):
+            # start the heartbeat loop on login response
+            def heartbeat_loop():
+                self.heartbeat_loop()
+            thread.start_new_thread(heartbeat_loop, ())
+
+        # do something with responses here
+
+        # use self.send to send to the server (see on_open for an example)
 
     def on_error(self, error):
         logging.error("on_error: %s" % error)
@@ -68,14 +86,6 @@ class DTCClient:
                 client_name=CLIENT_NAME
             ))
 
-    def heartbeat_loop(self):
-        while True:
-            time.sleep(int(HEARTBEAT*0.9))
-            self.send(
-                Heartbeat(
-                    current_date_time=time.time(),
-                ))
-
     def start(self):
         def on_message(ws, message):
             self.on_message(message)
@@ -88,11 +98,6 @@ class DTCClient:
 
         def on_open(ws):
             self.on_open()
-
-            def heartbeat_loop(*args):
-                self.heartbeat_loop()
-
-            thread.start_new_thread(heartbeat_loop, ())
 
         # websocket.enableTrace(True)
         self.ws = websocket.WebSocketApp(self.url,
