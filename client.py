@@ -1,11 +1,11 @@
-import json
 import time
 
 # pip install websocket_client
 import websocket
+import uuid
 
-from dtc.enums.message_types import MessageTypes
 from dtc.enums.trade_mode_enum import TradeModeEnum
+from dtc.message_types.account_balance_request import AccountBalanceRequest
 from dtc.message_types.heartbeat import Heartbeat
 from dtc.message_types.logon_request import LogonRequest
 from dtc.message_types.logon_response import LogonResponse
@@ -30,6 +30,7 @@ PRETTY = True
 class DTCClient:
     ws = None
     url = None
+    request_id = 0
 
     def __init__(self):
         self.parser = ArgParser(description='DTC Client')
@@ -39,20 +40,21 @@ class DTCClient:
         self.url = 'ws://%s:%s' % (self.args.host, self.args.port)
         logging.info("URL: %s" % self.url)
 
-    def receive(self):
-        result = self.ws.recv()
-        logging.info('Result: {}'.format(result))
-
     def send(self, message: BaseMessageType):
-        logging.info("Sending %s:\n%s" % (message.get_message_type_name(), message.to_JSON(pretty=PRETTY)))
-        self.ws.send(message.to_JSON() + '\x00')  # must be null terminated
+        logging.debug("Sending %s:\n%s" % (message.get_message_type_name(), message.to_JSON(pretty=PRETTY)))
+        self.ws.send(message.to_JSON(logging=False) + '\x00')  # must be null terminated
 
     def on_message(self, message_text):
         message = MessageUtil.parse_incoming_message(message_text)
-        logging.info("Received %s:\n%s" % (message.get_message_type_name(), message.to_JSON(pretty=PRETTY)))
+        logging.debug("Received %s:\n%s" % (message.get_message_type_name(), message.to_JSON(pretty=PRETTY)))
 
         if isinstance(message, LogonResponse):
             # do something on login
+            self.request_id += 1
+            self.send(
+                AccountBalanceRequest(
+                    request_id=self.request_id
+                ))
             pass
 
         elif isinstance(message, Heartbeat):
@@ -65,10 +67,10 @@ class DTCClient:
         # handle more messages here
 
     def on_error(self, error):
-        logging.error("on_error: %s" % error)
+        logging.error("Error: %s" % error)
 
     def on_close(self):
-        logging.info("on_close")
+        logging.info("Closing")
 
     def on_open(self):
         self.send(

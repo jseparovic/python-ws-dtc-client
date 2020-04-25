@@ -39,7 +39,8 @@ class Util:
             stream_handler.setFormatter(log_formatter)
             root_logger.addHandler(stream_handler)
 
-        root_logger.setLevel(LOG_LEVEL)
+        log_level = os.getenv(LOG_LEVEL) if os.getenv(LOG_LEVEL) else DEFAULT_LOG_LEVEL
+        root_logger.setLevel(logging.getLevelName(log_level))
         return root_logger
 
     @staticmethod

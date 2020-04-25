@@ -72,19 +72,22 @@ class DTCProtocolHeaderParser:
         cppHeader = CppHeaderParser.CppHeader(header_file)
         self.enums = cppHeader.enums
         self.message_types = []
+        self.message_types_only = []
         self.string_lengths = []
         for x in cppHeader.variables:
             if _DEFAULT in x:
                 x[_VALUE] = x[_DEFAULT]
                 if x[_TYPE] == 'const uint16_t':
                     self.message_types.append(x)
+                    self.message_types_only.append(x[_NAME])
                 else:
                     self.string_lengths.append(x)
 
         self.structs = []
         for _class in cppHeader.classes:
-            if "::union" not in _class:
-                class_name = parse_class_name(_class)
+            class_name = parse_class_name(_class)
+            snake_class_name = camel_to_snake(class_name).upper()
+            if "::union" not in _class and snake_class_name in self.message_types_only:
                 _class_obj = {
                     _NAME: class_name,
                     _SNAKE_NAME: camel_to_snake(class_name),
@@ -96,6 +99,8 @@ class DTCProtocolHeaderParser:
                         x[_SNAKE_NAME] = camel_to_snake(x[_NAME])
                         _class_obj[_PROPERTIES].append(x)
                 self.structs.append(_class_obj)
+            else:
+                logging.warning("Ignored struct %s" % _class)
 
     def to_JSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)

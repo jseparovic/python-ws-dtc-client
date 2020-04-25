@@ -16,7 +16,6 @@ from dtc.message_types.market_depth_request import MarketDepthRequest
 from dtc.message_types.market_data_reject import MarketDataReject
 from dtc.message_types.market_data_snapshot import MarketDataSnapshot
 from dtc.message_types.market_data_snapshot_int import MarketDataSnapshotInt
-from dtc.message_types.depth_entry import DepthEntry
 from dtc.message_types.market_depth_snapshot_level import MarketDepthSnapshotLevel
 from dtc.message_types.market_depth_snapshot_level_float import MarketDepthSnapshotLevelFloat
 from dtc.message_types.market_depth_snapshot_level_int import MarketDepthSnapshotLevelInt
@@ -39,7 +38,6 @@ from dtc.message_types.market_data_update_bid_ask import MarketDataUpdateBidAsk
 from dtc.message_types.market_data_update_bid_ask_int import MarketDataUpdateBidAskInt
 from dtc.message_types.market_data_update_bid_ask_compact import MarketDataUpdateBidAskCompact
 from dtc.message_types.market_data_update_bid_ask_float_with_milliseconds import MarketDataUpdateBidAskFloatWithMilliseconds
-from dtc.message_types.market_data_update_bid_ask_no_time_stamp import MarketDataUpdateBidAskNoTimeStamp
 from dtc.message_types.market_data_update_trade_compact import MarketDataUpdateTradeCompact
 from dtc.message_types.market_data_update_session_volume import MarketDataUpdateSessionVolume
 from dtc.message_types.market_data_update_open_interest import MarketDataUpdateOpenInterest
@@ -141,8 +139,6 @@ class MessageUtil:
             response = MarketDataSnapshot.from_message(message_obj)
         elif message_obj[TYPE] == MessageTypes.MARKET_DATA_SNAPSHOT_INT:
             response = MarketDataSnapshotInt.from_message(message_obj)
-        elif message_obj[TYPE] == MessageTypes.DEPTH_ENTRY:
-            response = DepthEntry.from_message(message_obj)
         elif message_obj[TYPE] == MessageTypes.MARKET_DEPTH_SNAPSHOT_LEVEL:
             response = MarketDepthSnapshotLevel.from_message(message_obj)
         elif message_obj[TYPE] == MessageTypes.MARKET_DEPTH_SNAPSHOT_LEVEL_FLOAT:
@@ -187,8 +183,6 @@ class MessageUtil:
             response = MarketDataUpdateBidAskCompact.from_message(message_obj)
         elif message_obj[TYPE] == MessageTypes.MARKET_DATA_UPDATE_BID_ASK_FLOAT_WITH_MILLISECONDS:
             response = MarketDataUpdateBidAskFloatWithMilliseconds.from_message(message_obj)
-        elif message_obj[TYPE] == MessageTypes.MARKET_DATA_UPDATE_BID_ASK_NO_TIME_STAMP:
-            response = MarketDataUpdateBidAskNoTimeStamp.from_message(message_obj)
         elif message_obj[TYPE] == MessageTypes.MARKET_DATA_UPDATE_TRADE_COMPACT:
             response = MarketDataUpdateTradeCompact.from_message(message_obj)
         elif message_obj[TYPE] == MessageTypes.MARKET_DATA_UPDATE_SESSION_VOLUME:
