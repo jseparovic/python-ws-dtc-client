@@ -3,7 +3,7 @@
 Checkout `example_client.py` for an example on how to use the client.
 
 The `DTCClient` class should contain common logic only, and custom logic should go in a child class
-(ExampleDTCClient for example)
+(`ExampleDTCClient` for example)
 
 The `dtc` directory contains the generated code based on DTCProtocol.h.
 
