@@ -149,7 +149,28 @@ eg: LOG_LEVEL=DEBUG ./example_client.py -n localhost -p 11099 -l
     "Type": 104
 }
 2020-04-25 13:45:16,985 - DTC_Client - DEBUG - on_message_thread
-
+2020-04-25 13:45:56,985 - DTC_Client - DEBUG - Received Heartbeat:
+{
+    "CurrentDateTime": 1587847557,
+    "NumDroppedMessages": 0,
+    "Type": 3
+}
+2020-04-25 13:45:56,985 - DTC_Client - DEBUG - Sending Heartbeat:
+{
+    "CurrentDateTime": 1587847556.985286,
+    "Type": 3
+}
+2020-04-25 13:46:36,972 - DTC_Client - DEBUG - Received Heartbeat:
+{
+    "CurrentDateTime": 1587847597,
+    "NumDroppedMessages": 0,
+    "Type": 3
+}
+2020-04-25 13:46:36,972 - DTC_Client - DEBUG - Sending Heartbeat:
+{
+    "CurrentDateTime": 1587847596.972321,
+    "Type": 3
+}
 ```
 
 
