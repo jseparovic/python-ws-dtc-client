@@ -1,11 +1,11 @@
 # python-ws-dtc-client
 
-###Dependencies:
+### Dependencies:
 
 pip install websocket_client
 
 
-###Usage
+### Usage
 ```
 usage: client.py [-h] -n HOST -p PORT [-u USERNAME] [-x PASSWORD]
 
@@ -22,7 +22,7 @@ optional arguments:
 ```
 
 
-###TODO
+### TODO
 Heaps. This just shows an example of login so far.
 
 The 'dtc' directory contains the generated code based on DTCProtocol.h
