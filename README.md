@@ -8,7 +8,8 @@ For code gen:
 
 ### Usage
 ```
-usage: client.py [-h] -n HOST -p PORT [-u USERNAME] [-x PASSWORD]
+usage: example_client.py [-h] -n HOST -p PORT [-l] [-s] [-u USERNAME]
+                         [-x PASSWORD]
 
 DTC Client
 
@@ -16,10 +17,13 @@ optional arguments:
   -h, --help            show this help message and exit
   -n HOST, --host HOST  Websocket Host
   -p PORT, --port PORT  Websocket Port
+  -l, --live            Live trading mode
+  -s, --simulated       Simulated trading mode
   -u USERNAME, --username USERNAME
                         Server Username
   -x PASSWORD, --password PASSWORD
                         Server Password
+
 ```
 
 ### Logging
