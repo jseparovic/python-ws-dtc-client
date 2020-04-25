@@ -37,7 +37,7 @@ class DTCClient:
         logging.info('Result: {}'.format(result))
 
     def send(self, message: BaseMessageType):
-        self.ws.send(message.to_JSON() + '\x00')
+        self.ws.send(message.to_JSON() + '\x00')  # must be null terminated
 
     def on_message(self, message):
         logging.info("on_message: %s" % message)
