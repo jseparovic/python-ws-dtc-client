@@ -26,7 +26,7 @@ if __name__ == '__main__':
     for ix, symbol in enumerate(SYMBOL_LIST):
         SYMBOL_LIST[ix][_ID] = get_symbol_id(symbol[_NAME])
 
-    class MyDTCClient(DTCClient):
+    class ExampleDTCClient(DTCClient):
         def __init__(self):
             super().__init__(on_message_handler=self.on_message_thread, post_login_thread=self.post_login_thread)
 
@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     try:
         logger = Util.setup_logging("DTC_Client", console=CONSOLE_LOGGING)
-        dtc_client = MyDTCClient()
+        dtc_client = ExampleDTCClient()
         dtc_client.start()
     except BaseException as e:
         logging.error(e.__str__())
