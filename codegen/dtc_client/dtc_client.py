@@ -1,34 +1,21 @@
-import json
 import time
+import websocket  # pip install websocket_client
 
-# pip install websocket_client
-import traceback
-
-import websocket
-import uuid
-
-from dtc.enums.encoding_enum import EncodingEnum
 from dtc.enums.logon_status_enum import LogonStatusEnum
-from dtc.enums.request_action_enum import RequestActionEnum
 from dtc.enums.trade_mode_enum import TradeModeEnum
-from dtc.message_types.encoding_request import EncodingRequest
-from dtc.message_types.encoding_response import EncodingResponse
 from dtc.message_types.heartbeat import Heartbeat
 from dtc.message_types.logon_request import LogonRequest
 from dtc.message_types.logon_response import LogonResponse
-from dtc.message_types.market_data_request import MarketDataRequest
-from dtc.message_types.market_data_snapshot import MarketDataSnapshot
-from dtc.message_types.market_data_update_bid_ask import MarketDataUpdateBidAsk
 from dtc.util.message_util import MessageUtil
 from lib.base_message_type import BaseMessageType
-from lib.error import LogonError, InvalidArgumentsError, ClientError
+from lib.error import LogonError, InvalidArgumentsError
 
 try:
     import thread
 except ImportError:
     import _thread as thread
 
-from lib.util import Util, ArgParser, CONSOLE_LOGGING
+from lib.util import ArgParser
 import logging
 
 CLIENT_NAME = "DTC Client"
@@ -47,7 +34,7 @@ class DTCClient:
     def __init__(self, on_message_handler, post_login_thread=None):
         self.on_message_handler = on_message_handler
         self.post_login_thread = post_login_thread
-        self.parser = ArgParser(description='DTC Client')
+        self.parser = ArgParser(description=CLIENT_NAME)
         self.add_args()
         self.args = self.parser.parse_args()
         self.check_args()
