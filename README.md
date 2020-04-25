@@ -101,7 +101,7 @@ Set Environment variable `LOG_LEVEL=DEBUG` to see request/responses
 
 
 ### TODO
-Heaps. This just shows an example of login so far.
+Heaps. This just shows an example of login and retrieve account balance. It also responds to heartbeats.
 
 Checkout client.py for the main code and add logic to send and handle messages in on_message
 
