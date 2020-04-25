@@ -40,6 +40,7 @@ if __name__ == '__main__':
                         symbol=symbol[_NAME]))
 
         def on_message_thread(self, message):
+            logger.debug("on_message_thread")
             if isinstance(message, MarketDataSnapshot):
                 marketDataSnapshot = MarketDataSnapshot()
                 # do something with market data
