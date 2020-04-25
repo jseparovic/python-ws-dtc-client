@@ -1,0 +1,6 @@
+
+class RequestActionEnum:
+    SUBSCRIBE = 1
+    UNSUBSCRIBE = 2
+    SNAPSHOT = 3
+    SNAPSHOT_WITH_INTERVAL_UPDATES = 4

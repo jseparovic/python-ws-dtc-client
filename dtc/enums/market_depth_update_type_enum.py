@@ -1,0 +1,5 @@
+
+class MarketDepthUpdateTypeEnum:
+    MARKET_DEPTH_UNSET = 0
+    MARKET_DEPTH_INSERT_UPDATE_LEVEL = 1
+    MARKET_DEPTH_DELETE_LEVEL = 2

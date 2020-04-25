@@ -1,0 +1,6 @@
+
+class LogonStatusEnum:
+    LOGON_SUCCESS = 1
+    LOGON_ERROR = 2
+    LOGON_ERROR_NO_RECONNECT = 3
+    LOGON_RECONNECT_NEW_ADDRESS = 4

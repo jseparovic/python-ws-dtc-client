@@ -1,0 +1,6 @@
+
+class FinalUpdateInBatchEnum:
+    FINAL_UPDATE_UNSET = 0
+    FINAL_UPDATE_TRUE = 1
+    FINAL_UPDATE_FALSE = 2
+    FINAL_UPDATE_BEGIN_BATCH = 3

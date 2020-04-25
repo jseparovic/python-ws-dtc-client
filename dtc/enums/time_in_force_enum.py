@@ -1,0 +1,9 @@
+
+class TimeInForceEnum:
+    TIF_UNSET = 0
+    TIF_DAY = 1
+    TIF_GOOD_TILL_CANCELED = 2
+    TIF_GOOD_TILL_DATE_TIME = 3
+    TIF_IMMEDIATE_OR_CANCEL = 4
+    TIF_ALL_OR_NONE = 5
+    TIF_FILL_OR_KILL = 6

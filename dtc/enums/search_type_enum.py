@@ -1,0 +1,5 @@
+
+class SearchTypeEnum:
+    SEARCH_TYPE_UNSET = 0
+    SEARCH_TYPE_BY_SYMBOL = 1
+    SEARCH_TYPE_BY_DESCRIPTION = 2

@@ -1,0 +1,12 @@
+
+import json
+from dtc.enums.message_types import MessageTypes
+from lib.base_message_type import BaseMessageType
+
+
+class {{class_name}}(BaseMessageType):
+    def __init__(self{% for var in values %},
+                 {{ var._name }}=None{% endfor %}):
+        self.Type = MessageTypes.{{class_name_snake}}
+{% for var in values %}        self.{{ var.name }} = {{ var._name }}{{ "\n" }}{% endfor %}
+
