@@ -1,9 +1,10 @@
 # python-ws-dtc-client
 
 ### Dependencies:
+`pip install websocket_client`
 
-pip install websocket_client
-
+For code gen:
+`pip install CppHeaderParser`
 
 ### Usage
 ```
