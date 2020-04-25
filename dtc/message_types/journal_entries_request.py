@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -12,3 +11,13 @@ class JournalEntriesRequest(BaseMessageType):
         self.RequestID = request_id
         self.StartDateTime = start_date_time
 
+    @staticmethod
+    def from_message(message_obj):
+        return JournalEntriesRequest(
+             request_id=message_obj.get('RequestID'),
+             start_date_time=message_obj.get('StartDateTime')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "JournalEntriesRequest"

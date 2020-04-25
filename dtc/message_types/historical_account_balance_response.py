@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -26,3 +25,20 @@ class HistoricalAccountBalanceResponse(BaseMessageType):
         self.InfoText = info_text
         self.TransactionId = transaction_id
 
+    @staticmethod
+    def from_message(message_obj):
+        return HistoricalAccountBalanceResponse(
+             request_id=message_obj.get('RequestID'),
+             date_time=message_obj.get('DateTime'),
+             cash_balance=message_obj.get('CashBalance'),
+             account_currency=message_obj.get('AccountCurrency'),
+             trade_account=message_obj.get('TradeAccount'),
+             is_final_response=message_obj.get('IsFinalResponse'),
+             no_account_balances=message_obj.get('NoAccountBalances'),
+             info_text=message_obj.get('InfoText'),
+             transaction_id=message_obj.get('TransactionId')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "HistoricalAccountBalanceResponse"

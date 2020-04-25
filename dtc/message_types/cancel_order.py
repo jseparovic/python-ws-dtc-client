@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -12,3 +11,13 @@ class CancelOrder(BaseMessageType):
         self.ServerOrderID = server_order_id
         self.ClientOrderID = client_order_id
 
+    @staticmethod
+    def from_message(message_obj):
+        return CancelOrder(
+             server_order_id=message_obj.get('ServerOrderID'),
+             client_order_id=message_obj.get('ClientOrderID')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "CancelOrder"

@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -9,4 +8,13 @@ class {{class_name}}(BaseMessageType):
                  {{ var._name }}=None{% endfor %}):
         self.Type = MessageTypes.{{class_name_snake}}
 {% for var in values %}        self.{{ var.name }} = {{ var._name }}{{ "\n" }}{% endfor %}
+    @staticmethod
+    def from_message(message_obj):
+        return {{class_name}}(
+{% for var in values %}             {{ var._name }}=message_obj.get('{{ var.name }}'){% if not loop.last %}{{ ",\n" }}{% endif %}{% endfor %}
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "{{class_name}}"
 

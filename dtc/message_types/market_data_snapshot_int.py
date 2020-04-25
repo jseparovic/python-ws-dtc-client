@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -46,3 +45,30 @@ class MarketDataSnapshotInt(BaseMessageType):
         self.TradingSessionDate = trading_session_date
         self.TradingStatus = trading_status
 
+    @staticmethod
+    def from_message(message_obj):
+        return MarketDataSnapshotInt(
+             symbol_id=message_obj.get('SymbolID'),
+             session_settlement_price=message_obj.get('SessionSettlementPrice'),
+             session_open_price=message_obj.get('SessionOpenPrice'),
+             session_high_price=message_obj.get('SessionHighPrice'),
+             session_low_price=message_obj.get('SessionLowPrice'),
+             session_volume=message_obj.get('SessionVolume'),
+             session_num_trades=message_obj.get('SessionNumTrades'),
+             open_interest=message_obj.get('OpenInterest'),
+             bid_price=message_obj.get('BidPrice'),
+             ask_price=message_obj.get('AskPrice'),
+             ask_quantity=message_obj.get('AskQuantity'),
+             bid_quantity=message_obj.get('BidQuantity'),
+             last_trade_price=message_obj.get('LastTradePrice'),
+             last_trade_volume=message_obj.get('LastTradeVolume'),
+             last_trade_date_time=message_obj.get('LastTradeDateTime'),
+             bid_ask_date_time=message_obj.get('BidAskDateTime'),
+             session_settlement_date_time=message_obj.get('SessionSettlementDateTime'),
+             trading_session_date=message_obj.get('TradingSessionDate'),
+             trading_status=message_obj.get('TradingStatus')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "MarketDataSnapshotInt"

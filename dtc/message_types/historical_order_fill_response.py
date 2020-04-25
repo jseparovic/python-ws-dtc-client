@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -44,3 +43,29 @@ class HistoricalOrderFillResponse(BaseMessageType):
         self.LowPriceDuringPosition = low_price_during_position
         self.PositionQuantity = position_quantity
 
+    @staticmethod
+    def from_message(message_obj):
+        return HistoricalOrderFillResponse(
+             request_id=message_obj.get('RequestID'),
+             total_number_messages=message_obj.get('TotalNumberMessages'),
+             message_number=message_obj.get('MessageNumber'),
+             symbol=message_obj.get('Symbol'),
+             exchange=message_obj.get('Exchange'),
+             server_order_id=message_obj.get('ServerOrderID'),
+             buy_sell=message_obj.get('BuySell'),
+             price=message_obj.get('Price'),
+             date_time=message_obj.get('DateTime'),
+             quantity=message_obj.get('Quantity'),
+             unique_execution_id=message_obj.get('UniqueExecutionID'),
+             trade_account=message_obj.get('TradeAccount'),
+             open_close=message_obj.get('OpenClose'),
+             no_order_fills=message_obj.get('NoOrderFills'),
+             info_text=message_obj.get('InfoText'),
+             high_price_during_position=message_obj.get('HighPriceDuringPosition'),
+             low_price_during_position=message_obj.get('LowPriceDuringPosition'),
+             position_quantity=message_obj.get('PositionQuantity')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "HistoricalOrderFillResponse"

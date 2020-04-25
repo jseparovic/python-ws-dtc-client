@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -22,3 +21,18 @@ class MarketDepthUpdateLevelNoTimestamp(BaseMessageType):
         self.UpdateType = update_type
         self.FinalUpdateInBatch = final_update_in_batch
 
+    @staticmethod
+    def from_message(message_obj):
+        return MarketDepthUpdateLevelNoTimestamp(
+             symbol_id=message_obj.get('SymbolID'),
+             price=message_obj.get('Price'),
+             quantity=message_obj.get('Quantity'),
+             num_orders=message_obj.get('NumOrders'),
+             side=message_obj.get('Side'),
+             update_type=message_obj.get('UpdateType'),
+             final_update_in_batch=message_obj.get('FinalUpdateInBatch')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "MarketDepthUpdateLevelNoTimestamp"

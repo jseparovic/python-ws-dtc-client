@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -24,3 +23,19 @@ class MarketDepthUpdateLevelFloatWithMilliseconds(BaseMessageType):
         self.NumOrders = num_orders
         self.FinalUpdateInBatch = final_update_in_batch
 
+    @staticmethod
+    def from_message(message_obj):
+        return MarketDepthUpdateLevelFloatWithMilliseconds(
+             symbol_id=message_obj.get('SymbolID'),
+             date_time=message_obj.get('DateTime'),
+             price=message_obj.get('Price'),
+             quantity=message_obj.get('Quantity'),
+             side=message_obj.get('Side'),
+             update_type=message_obj.get('UpdateType'),
+             num_orders=message_obj.get('NumOrders'),
+             final_update_in_batch=message_obj.get('FinalUpdateInBatch')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "MarketDepthUpdateLevelFloatWithMilliseconds"

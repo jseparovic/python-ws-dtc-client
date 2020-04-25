@@ -1,11 +1,15 @@
+import json
 import time
 
 # pip install websocket_client
 import websocket
 
+from dtc.enums.message_types import MessageTypes
 from dtc.enums.trade_mode_enum import TradeModeEnum
 from dtc.message_types.heartbeat import Heartbeat
 from dtc.message_types.logon_request import LogonRequest
+from dtc.message_types.logon_response import LogonResponse
+from dtc.util.message_util import MessageUtil
 from lib.base_message_type import BaseMessageType
 
 try:
@@ -19,6 +23,8 @@ import logging
 CLIENT_NAME = "DTC Client"
 HEARTBEAT = 60
 PROTOCOL_VERSION = 8
+
+PRETTY = True
 
 
 class DTCClient:
@@ -38,12 +44,12 @@ class DTCClient:
         logging.info('Result: {}'.format(result))
 
     def send(self, message: BaseMessageType):
+        logging.info("Sending %s:\n%s" % (message.get_message_type_name(), message.to_JSON(pretty=PRETTY)))
         self.ws.send(message.to_JSON() + '\x00')  # must be null terminated
 
-    def on_message(self, message):
-        logging.info("on_message: %s" % message)
-        # handle logon response here
-        # then do more stuff
+    def on_message(self, message_text):
+        message = MessageUtil.parse_incoming_message(message_text)
+        # do something with message here
 
     def on_error(self, error):
         logging.error("on_error: %s" % error)
@@ -64,11 +70,11 @@ class DTCClient:
 
     def heartbeat_loop(self):
         while True:
+            time.sleep(int(HEARTBEAT*0.9))
             self.send(
                 Heartbeat(
                     current_date_time=time.time(),
                 ))
-            time.sleep(HEARTBEAT)
 
     def start(self):
         def on_message(ws, message):

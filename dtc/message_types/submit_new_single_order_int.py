@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -40,3 +39,27 @@ class SubmitNewSingleOrderInt(BaseMessageType):
         self.FreeFormText = free_form_text
         self.OpenOrClose = open_or_close
 
+    @staticmethod
+    def from_message(message_obj):
+        return SubmitNewSingleOrderInt(
+             symbol=message_obj.get('Symbol'),
+             exchange=message_obj.get('Exchange'),
+             trade_account=message_obj.get('TradeAccount'),
+             client_order_id=message_obj.get('ClientOrderID'),
+             order_type=message_obj.get('OrderType'),
+             buy_sell=message_obj.get('BuySell'),
+             price1=message_obj.get('Price1'),
+             price2=message_obj.get('Price2'),
+             divisor=message_obj.get('Divisor'),
+             quantity=message_obj.get('Quantity'),
+             time_in_force=message_obj.get('TimeInForce'),
+             good_till_date_time=message_obj.get('GoodTillDateTime'),
+             is_automated_order=message_obj.get('IsAutomatedOrder'),
+             is_parent_order=message_obj.get('IsParentOrder'),
+             free_form_text=message_obj.get('FreeFormText'),
+             open_or_close=message_obj.get('OpenOrClose')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "SubmitNewSingleOrderInt"

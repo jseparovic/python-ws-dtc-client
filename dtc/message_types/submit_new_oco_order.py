@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -31,7 +30,7 @@ class SubmitNewOCOOrder(BaseMessageType):
                  use_offsets=None,
                  offset_from_parent1=None,
                  offset_from_parent2=None):
-        self.Type = MessageTypes.SUBMIT_NEW_O_C_O_ORDER
+        self.Type = MessageTypes.SUBMIT_NEW_OCO_ORDER
         self.Symbol = symbol
         self.Exchange = exchange
         self.ClientOrderID_1 = client_order_id_1
@@ -58,3 +57,36 @@ class SubmitNewOCOOrder(BaseMessageType):
         self.OffsetFromParent1 = offset_from_parent1
         self.OffsetFromParent2 = offset_from_parent2
 
+    @staticmethod
+    def from_message(message_obj):
+        return SubmitNewOCOOrder(
+             symbol=message_obj.get('Symbol'),
+             exchange=message_obj.get('Exchange'),
+             client_order_id_1=message_obj.get('ClientOrderID_1'),
+             order_type_1=message_obj.get('OrderType_1'),
+             buy_sell_1=message_obj.get('BuySell_1'),
+             price1_1=message_obj.get('Price1_1'),
+             price2_1=message_obj.get('Price2_1'),
+             quantity_1=message_obj.get('Quantity_1'),
+             client_order_id_2=message_obj.get('ClientOrderID_2'),
+             order_type_2=message_obj.get('OrderType_2'),
+             buy_sell_2=message_obj.get('BuySell_2'),
+             price1_2=message_obj.get('Price1_2'),
+             price2_2=message_obj.get('Price2_2'),
+             quantity_2=message_obj.get('Quantity_2'),
+             time_in_force=message_obj.get('TimeInForce'),
+             good_till_date_time=message_obj.get('GoodTillDateTime'),
+             trade_account=message_obj.get('TradeAccount'),
+             is_automated_order=message_obj.get('IsAutomatedOrder'),
+             parent_trigger_client_order_id=message_obj.get('ParentTriggerClientOrderID'),
+             free_form_text=message_obj.get('FreeFormText'),
+             open_or_close=message_obj.get('OpenOrClose'),
+             partial_fill_handling=message_obj.get('PartialFillHandling'),
+             use_offsets=message_obj.get('UseOffsets'),
+             offset_from_parent1=message_obj.get('OffsetFromParent1'),
+             offset_from_parent2=message_obj.get('OffsetFromParent2')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "SubmitNewOCOOrder"

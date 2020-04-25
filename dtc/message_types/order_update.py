@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -78,3 +77,46 @@ class OrderUpdate(BaseMessageType):
         self.OrderReceivedDateTime = order_received_date_time
         self.LatestTransactionDateTime = latest_transaction_date_time
 
+    @staticmethod
+    def from_message(message_obj):
+        return OrderUpdate(
+             request_id=message_obj.get('RequestID'),
+             total_num_messages=message_obj.get('TotalNumMessages'),
+             message_number=message_obj.get('MessageNumber'),
+             symbol=message_obj.get('Symbol'),
+             exchange=message_obj.get('Exchange'),
+             previous_server_order_id=message_obj.get('PreviousServerOrderID'),
+             server_order_id=message_obj.get('ServerOrderID'),
+             client_order_id=message_obj.get('ClientOrderID'),
+             exchange_order_id=message_obj.get('ExchangeOrderID'),
+             order_status=message_obj.get('OrderStatus'),
+             order_update_reason=message_obj.get('OrderUpdateReason'),
+             order_type=message_obj.get('OrderType'),
+             buy_sell=message_obj.get('BuySell'),
+             price1=message_obj.get('Price1'),
+             price2=message_obj.get('Price2'),
+             time_in_force=message_obj.get('TimeInForce'),
+             good_till_date_time=message_obj.get('GoodTillDateTime'),
+             order_quantity=message_obj.get('OrderQuantity'),
+             filled_quantity=message_obj.get('FilledQuantity'),
+             remaining_quantity=message_obj.get('RemainingQuantity'),
+             average_fill_price=message_obj.get('AverageFillPrice'),
+             last_fill_price=message_obj.get('LastFillPrice'),
+             last_fill_date_time=message_obj.get('LastFillDateTime'),
+             last_fill_quantity=message_obj.get('LastFillQuantity'),
+             last_fill_execution_id=message_obj.get('LastFillExecutionID'),
+             trade_account=message_obj.get('TradeAccount'),
+             info_text=message_obj.get('InfoText'),
+             no_orders=message_obj.get('NoOrders'),
+             parent_server_order_id=message_obj.get('ParentServerOrderID'),
+             o_c_o_linked_order_server_order_id=message_obj.get('OCOLinkedOrderServerOrderID'),
+             open_or_close=message_obj.get('OpenOrClose'),
+             previous_client_order_id=message_obj.get('PreviousClientOrderID'),
+             free_form_text=message_obj.get('FreeFormText'),
+             order_received_date_time=message_obj.get('OrderReceivedDateTime'),
+             latest_transaction_date_time=message_obj.get('LatestTransactionDateTime')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "OrderUpdate"

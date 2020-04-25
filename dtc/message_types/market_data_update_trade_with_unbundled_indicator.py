@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -28,3 +27,21 @@ class MarketDataUpdateTradeWithUnbundledIndicator(BaseMessageType):
         self.Reserve_3 = reserve_3
         self.DateTime = date_time
 
+    @staticmethod
+    def from_message(message_obj):
+        return MarketDataUpdateTradeWithUnbundledIndicator(
+             symbol_id=message_obj.get('SymbolID'),
+             at_bid_or_ask=message_obj.get('AtBidOrAsk'),
+             unbundled_trade_indicator=message_obj.get('UnbundledTradeIndicator'),
+             sale_condition=message_obj.get('SaleCondition'),
+             reserve_1=message_obj.get('Reserve_1'),
+             reserve_2=message_obj.get('Reserve_2'),
+             price=message_obj.get('Price'),
+             volume=message_obj.get('Volume'),
+             reserve_3=message_obj.get('Reserve_3'),
+             date_time=message_obj.get('DateTime')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "MarketDataUpdateTradeWithUnbundledIndicator"

@@ -19,6 +19,7 @@ from functools import reduce
 
 
 _NAME = 'name'
+_PARSED_NAME = '__name'
 _SNAKE_NAME = '_name'
 _VALUE = 'value'
 _VALUES = 'values'
@@ -31,10 +32,13 @@ _TYPE_MESSAGE_TYPES = 'MessageTypes'
 _TYPE_STRING_LENGTHS = 'StringLengths'
 _INIT_PY = "__init__.py"
 _MESSAGE_TYPES_PY = "message_types.py"
+_MESSAGE_UTIL_PY = "message_util.py"
 _STRING_LENGTHS_PY = "string_lengths.py"
 _ENUM_TEMPLATE = 'enum_template.jinja2'
+_UTIL_TEMPLATE = 'util_template.jinja2'
 _MESSAGE_TYPE_TEMPLATE = 'message_type_template.jinja2'
 _ENUM_DIR = 'enums'
+_UTIL_DIR = 'util'
 _MESSAGE_TYPE_DIR = 'message_types'
 
 DIR = os.getcwd()
@@ -43,12 +47,19 @@ GENERATED_DIR = join(DIR, "../dtc")
 
 def camel_to_snake(str):
     res = reduce(lambda x, y: x + ('_' if y.isupper() else '') + y, str).lower()
-    return res.replace('_i_d', '_id')  # hack to fix ID
+    res = res.replace('_i_d', '_id')  # hack to fix ID
+    res = res.replace('_o_c_o', '_oco')  # hack to fix OCO
+    return res
 
 
 def write_init_py(directory):
     with open(join(directory, _INIT_PY), "w") as f:
         f.write("")
+
+
+def parse_class_name(name):
+    res = name.replace("s_", "").replace("_", "")
+    return res
 
 
 def new_package(directory):
@@ -72,15 +83,19 @@ class DTCProtocolHeaderParser:
 
         self.structs = []
         for _class in cppHeader.classes:
-            _class_obj = {
-                _NAME: _class,
-                _PROPERTIES: []
-            }
-            for x in cppHeader.classes[_class][_PROPERTIES][_PUBLIC]:
-                if _NAME in x and x[_NAME] and x[_NAME].lower() not in [_TYPE, _SIZE]:
-                    x[_SNAKE_NAME] = camel_to_snake(x[_NAME])
-                    _class_obj[_PROPERTIES].append(x)
-            self.structs.append(_class_obj)
+            if "::union" not in _class:
+                class_name = parse_class_name(_class)
+                _class_obj = {
+                    _NAME: class_name,
+                    _SNAKE_NAME: camel_to_snake(class_name),
+                    _PARSED_NAME: class_name,
+                    _PROPERTIES: []
+                }
+                for x in cppHeader.classes[_class][_PROPERTIES][_PUBLIC]:
+                    if _NAME in x and x[_NAME] and x[_NAME].lower() not in [_TYPE, _SIZE]:
+                        x[_SNAKE_NAME] = camel_to_snake(x[_NAME])
+                        _class_obj[_PROPERTIES].append(x)
+                self.structs.append(_class_obj)
 
     def to_JSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
@@ -101,12 +116,20 @@ class DTCProtocolHeaderParser:
         with open(join(enum_dir, _STRING_LENGTHS_PY), "w") as f:
             f.write(template.render(class_name=_TYPE_STRING_LENGTHS, values=self.string_lengths))
 
+    def generate_message_util(self, output_directory):
+        util_dir = join(output_directory, _UTIL_DIR)
+        new_package(util_dir)
+        template = env.get_template(_UTIL_TEMPLATE)
+        #logging.info(json.dumps(self.structs, indent=4))
+        with open(join(util_dir, _MESSAGE_UTIL_PY), "w") as f:
+            f.write(template.render(classes=self.structs))
+
     def generate_message_types(self, output_directory):
         message_type_dir = join(output_directory, _MESSAGE_TYPE_DIR)
         new_package(message_type_dir)
         template = env.get_template(_MESSAGE_TYPE_TEMPLATE)
         for struct in self.structs:
-            name = struct[_NAME].replace("s_", "").replace("_", "")
+            name = struct[_PARSED_NAME]
             snake_name = camel_to_snake(name).upper()
             with open(join(message_type_dir, "%s.py" % camel_to_snake(name)), "w") as f:
                 f.write(template.render(class_name=name, class_name_snake=snake_name, values=struct[_PROPERTIES]))
@@ -116,6 +139,7 @@ class DTCProtocolHeaderParser:
         new_package(output_directory)
         self.generate_enums(output_directory)
         self.generate_message_types(output_directory)
+        self.generate_message_util(output_directory)
 
 
 if __name__ == '__main__':

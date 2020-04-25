@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -68,3 +67,41 @@ class SecurityDefinitionResponse(BaseMessageType):
         self.ContractSize = contract_size
         self.OpenInterest = open_interest
 
+    @staticmethod
+    def from_message(message_obj):
+        return SecurityDefinitionResponse(
+             request_id=message_obj.get('RequestID'),
+             symbol=message_obj.get('Symbol'),
+             exchange=message_obj.get('Exchange'),
+             security_type=message_obj.get('SecurityType'),
+             description=message_obj.get('Description'),
+             min_price_increment=message_obj.get('MinPriceIncrement'),
+             price_display_format=message_obj.get('PriceDisplayFormat'),
+             currency_value_per_increment=message_obj.get('CurrencyValuePerIncrement'),
+             is_final_message=message_obj.get('IsFinalMessage'),
+             float_to_int_price_multiplier=message_obj.get('FloatToIntPriceMultiplier'),
+             int_to_float_price_divisor=message_obj.get('IntToFloatPriceDivisor'),
+             underlying_symbol=message_obj.get('UnderlyingSymbol'),
+             updates_bid_ask_only=message_obj.get('UpdatesBidAskOnly'),
+             strike_price=message_obj.get('StrikePrice'),
+             put_or_call=message_obj.get('PutOrCall'),
+             short_interest=message_obj.get('ShortInterest'),
+             security_expiration_date=message_obj.get('SecurityExpirationDate'),
+             buy_rollover_interest=message_obj.get('BuyRolloverInterest'),
+             sell_rollover_interest=message_obj.get('SellRolloverInterest'),
+             earnings_per_share=message_obj.get('EarningsPerShare'),
+             shares_outstanding=message_obj.get('SharesOutstanding'),
+             int_to_float_quantity_divisor=message_obj.get('IntToFloatQuantityDivisor'),
+             has_market_depth_data=message_obj.get('HasMarketDepthData'),
+             display_price_multiplier=message_obj.get('DisplayPriceMultiplier'),
+             exchange_symbol=message_obj.get('ExchangeSymbol'),
+             initial_margin_requirement=message_obj.get('InitialMarginRequirement'),
+             maintenance_margin_requirement=message_obj.get('MaintenanceMarginRequirement'),
+             currency=message_obj.get('Currency'),
+             contract_size=message_obj.get('ContractSize'),
+             open_interest=message_obj.get('OpenInterest')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "SecurityDefinitionResponse"

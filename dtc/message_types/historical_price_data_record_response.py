@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -28,3 +27,21 @@ class HistoricalPriceDataRecordResponse(BaseMessageType):
         self.AskVolume = ask_volume
         self.IsFinalRecord = is_final_record
 
+    @staticmethod
+    def from_message(message_obj):
+        return HistoricalPriceDataRecordResponse(
+             request_id=message_obj.get('RequestID'),
+             start_date_time=message_obj.get('StartDateTime'),
+             open_price=message_obj.get('OpenPrice'),
+             high_price=message_obj.get('HighPrice'),
+             low_price=message_obj.get('LowPrice'),
+             last_price=message_obj.get('LastPrice'),
+             volume=message_obj.get('Volume'),
+             bid_volume=message_obj.get('BidVolume'),
+             ask_volume=message_obj.get('AskVolume'),
+             is_final_record=message_obj.get('IsFinalRecord')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "HistoricalPriceDataRecordResponse"

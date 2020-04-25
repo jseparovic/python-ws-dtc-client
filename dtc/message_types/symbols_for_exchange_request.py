@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -18,3 +17,16 @@ class SymbolsForExchangeRequest(BaseMessageType):
         self.RequestAction = request_action
         self.Symbol = symbol
 
+    @staticmethod
+    def from_message(message_obj):
+        return SymbolsForExchangeRequest(
+             request_id=message_obj.get('RequestID'),
+             exchange=message_obj.get('Exchange'),
+             security_type=message_obj.get('SecurityType'),
+             request_action=message_obj.get('RequestAction'),
+             symbol=message_obj.get('Symbol')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "SymbolsForExchangeRequest"

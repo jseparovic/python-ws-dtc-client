@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -48,3 +47,31 @@ class LogonResponse(BaseMessageType):
         self.UsesMultiplePositionsPerSymbolAndTradeAccount = uses_multiple_positions_per_symbol_and_trade_account
         self.MarketDataSupported = market_data_supported
 
+    @staticmethod
+    def from_message(message_obj):
+        return LogonResponse(
+             protocol_version=message_obj.get('ProtocolVersion'),
+             result=message_obj.get('Result'),
+             result_text=message_obj.get('ResultText'),
+             reconnect_address=message_obj.get('ReconnectAddress'),
+             integer_1=message_obj.get('Integer_1'),
+             server_name=message_obj.get('ServerName'),
+             market_depth_updates_best_bid_and_ask=message_obj.get('MarketDepthUpdatesBestBidAndAsk'),
+             trading_is_supported=message_obj.get('TradingIsSupported'),
+             o_c_o_orders_supported=message_obj.get('OCOOrdersSupported'),
+             order_cancel_replace_supported=message_obj.get('OrderCancelReplaceSupported'),
+             symbol_exchange_delimiter=message_obj.get('SymbolExchangeDelimiter'),
+             security_definitions_supported=message_obj.get('SecurityDefinitionsSupported'),
+             historical_price_data_supported=message_obj.get('HistoricalPriceDataSupported'),
+             resubscribe_when_market_data_feed_available=message_obj.get('ResubscribeWhenMarketDataFeedAvailable'),
+             market_depth_is_supported=message_obj.get('MarketDepthIsSupported'),
+             one_historical_price_data_request_per_connection=message_obj.get('OneHistoricalPriceDataRequestPerConnection'),
+             bracket_orders_supported=message_obj.get('BracketOrdersSupported'),
+             use_integer_price_order_messages=message_obj.get('UseIntegerPriceOrderMessages'),
+             uses_multiple_positions_per_symbol_and_trade_account=message_obj.get('UsesMultiplePositionsPerSymbolAndTradeAccount'),
+             market_data_supported=message_obj.get('MarketDataSupported')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "LogonResponse"

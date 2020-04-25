@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -30,3 +29,22 @@ class LogonRequest(BaseMessageType):
         self.HardwareIdentifier = hardware_identifier
         self.ClientName = client_name
 
+    @staticmethod
+    def from_message(message_obj):
+        return LogonRequest(
+             protocol_version=message_obj.get('ProtocolVersion'),
+             username=message_obj.get('Username'),
+             password=message_obj.get('Password'),
+             general_text_data=message_obj.get('GeneralTextData'),
+             integer_1=message_obj.get('Integer_1'),
+             integer_2=message_obj.get('Integer_2'),
+             heartbeat_interval_in_seconds=message_obj.get('HeartbeatIntervalInSeconds'),
+             trade_mode=message_obj.get('TradeMode'),
+             trade_account=message_obj.get('TradeAccount'),
+             hardware_identifier=message_obj.get('HardwareIdentifier'),
+             client_name=message_obj.get('ClientName')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "LogonRequest"

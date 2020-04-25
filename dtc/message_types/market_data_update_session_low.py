@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -14,3 +13,14 @@ class MarketDataUpdateSessionLow(BaseMessageType):
         self.Price = price
         self.TradingSessionDate = trading_session_date
 
+    @staticmethod
+    def from_message(message_obj):
+        return MarketDataUpdateSessionLow(
+             symbol_id=message_obj.get('SymbolID'),
+             price=message_obj.get('Price'),
+             trading_session_date=message_obj.get('TradingSessionDate')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "MarketDataUpdateSessionLow"

@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -28,3 +27,21 @@ class HistoricalPriceDataRequest(BaseMessageType):
         self.RequestDividendAdjustedStockData = request_dividend_adjusted_stock_data
         self.Flag_1 = flag_1
 
+    @staticmethod
+    def from_message(message_obj):
+        return HistoricalPriceDataRequest(
+             request_id=message_obj.get('RequestID'),
+             symbol=message_obj.get('Symbol'),
+             exchange=message_obj.get('Exchange'),
+             record_interval=message_obj.get('RecordInterval'),
+             start_date_time=message_obj.get('StartDateTime'),
+             end_date_time=message_obj.get('EndDateTime'),
+             max_days_to_return=message_obj.get('MaxDaysToReturn'),
+             use_z_lib_compression=message_obj.get('UseZLibCompression'),
+             request_dividend_adjusted_stock_data=message_obj.get('RequestDividendAdjustedStockData'),
+             flag_1=message_obj.get('Flag_1')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "HistoricalPriceDataRequest"

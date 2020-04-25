@@ -1,0 +1,24 @@
+import json
+import logging
+from dtc.enums.message_types import MessageTypes
+
+{% for _class in classes %}from dtc.message_types.{{ _class._name|lower }} import {{ _class.__name }}
+{% endfor %}
+TYPE = 'Type'
+
+
+class MessageUtil:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def parse_incoming_message(message_text, pretty=True):
+        response = None
+        message_obj = json.loads(message_text)
+
+{% for _class in classes %}        {% if not loop.first %}el{% endif %}if message_obj[TYPE] == MessageTypes.{{ _class._name|upper }}:
+            response = {{ _class.__name }}.from_message(message_obj)
+            logging.info("Received {{ _class.__name }}:\n%s" % response.to_JSON(pretty=pretty))
+{% endfor %}
+        return response
+

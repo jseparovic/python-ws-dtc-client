@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -18,3 +17,16 @@ class HistoricalPriceDataResponseHeader(BaseMessageType):
         self.NoRecordsToReturn = no_records_to_return
         self.IntToFloatPriceDivisor = int_to_float_price_divisor
 
+    @staticmethod
+    def from_message(message_obj):
+        return HistoricalPriceDataResponseHeader(
+             request_id=message_obj.get('RequestID'),
+             record_interval=message_obj.get('RecordInterval'),
+             use_z_lib_compression=message_obj.get('UseZLibCompression'),
+             no_records_to_return=message_obj.get('NoRecordsToReturn'),
+             int_to_float_price_divisor=message_obj.get('IntToFloatPriceDivisor')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "HistoricalPriceDataResponseHeader"

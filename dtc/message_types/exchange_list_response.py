@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -16,3 +15,15 @@ class ExchangeListResponse(BaseMessageType):
         self.IsFinalMessage = is_final_message
         self.Description = description
 
+    @staticmethod
+    def from_message(message_obj):
+        return ExchangeListResponse(
+             request_id=message_obj.get('RequestID'),
+             exchange=message_obj.get('Exchange'),
+             is_final_message=message_obj.get('IsFinalMessage'),
+             description=message_obj.get('Description')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "ExchangeListResponse"

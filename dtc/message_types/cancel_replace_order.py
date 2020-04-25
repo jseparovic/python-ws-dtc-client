@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -30,3 +29,22 @@ class CancelReplaceOrder(BaseMessageType):
         self.GoodTillDateTime = good_till_date_time
         self.UpdatePrice1OffsetToParent = update_price1_offset_to_parent
 
+    @staticmethod
+    def from_message(message_obj):
+        return CancelReplaceOrder(
+             server_order_id=message_obj.get('ServerOrderID'),
+             client_order_id=message_obj.get('ClientOrderID'),
+             price1=message_obj.get('Price1'),
+             price2=message_obj.get('Price2'),
+             quantity=message_obj.get('Quantity'),
+             price1_is_set=message_obj.get('Price1IsSet'),
+             price2_is_set=message_obj.get('Price2IsSet'),
+             unused=message_obj.get('Unused'),
+             time_in_force=message_obj.get('TimeInForce'),
+             good_till_date_time=message_obj.get('GoodTillDateTime'),
+             update_price1_offset_to_parent=message_obj.get('UpdatePrice1OffsetToParent')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "CancelReplaceOrder"

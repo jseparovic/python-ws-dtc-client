@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -16,3 +15,15 @@ class OpenOrdersRequest(BaseMessageType):
         self.ServerOrderID = server_order_id
         self.TradeAccount = trade_account
 
+    @staticmethod
+    def from_message(message_obj):
+        return OpenOrdersRequest(
+             request_id=message_obj.get('RequestID'),
+             request_all_orders=message_obj.get('RequestAllOrders'),
+             server_order_id=message_obj.get('ServerOrderID'),
+             trade_account=message_obj.get('TradeAccount')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "OpenOrdersRequest"

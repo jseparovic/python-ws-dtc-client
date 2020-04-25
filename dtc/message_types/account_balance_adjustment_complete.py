@@ -1,5 +1,4 @@
 
-import json
 from dtc.enums.message_types import MessageTypes
 from lib.base_message_type import BaseMessageType
 
@@ -12,3 +11,13 @@ class AccountBalanceAdjustmentComplete(BaseMessageType):
         self.RequestID = request_id
         self.TransactionID = transaction_id
 
+    @staticmethod
+    def from_message(message_obj):
+        return AccountBalanceAdjustmentComplete(
+             request_id=message_obj.get('RequestID'),
+             transaction_id=message_obj.get('TransactionID')
+        )
+
+    @staticmethod
+    def get_message_type_name():
+        return "AccountBalanceAdjustmentComplete"
