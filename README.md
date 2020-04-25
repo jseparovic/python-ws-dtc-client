@@ -25,4 +25,8 @@ optional arguments:
 ### TODO
 Heaps. This just shows an example of login so far.
 
-The 'dtc' directory contains the generated code based on DTCProtocol.h
+Checkout client.py for the main code.
+
+The 'dtc' directory contains the generated code based on DTCProtocol.h. 
+
+There are generated enums and message types to use in your code

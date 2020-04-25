@@ -5,6 +5,7 @@ import websocket
 
 from dtc.enums.trade_mode_enum import TradeModeEnum
 from dtc.message_types.logon_request import LogonRequest
+from lib.base_message_type import BaseMessageType
 
 try:
     import thread
@@ -35,7 +36,7 @@ class DTCClient:
         result = self.ws.recv()
         logging.info('Result: {}'.format(result))
 
-    def send(self, message):
+    def send(self, message: BaseMessageType):
         self.ws.send(message.to_JSON() + '\x00')
 
     def on_message(self, message):
