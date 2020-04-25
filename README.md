@@ -29,7 +29,7 @@ optional arguments:
 ### Logging
 Set Environment variable `LOG_LEVEL=DEBUG` to see request/responses
 ```
-eg: LOG_LEVEL=DEBUG ./client.py -n localhost -p 11099
+eg: LOG_LEVEL=DEBUG ./example_client.py -n localhost -p 11099 -l
 ```
 
 ### Sample Output
