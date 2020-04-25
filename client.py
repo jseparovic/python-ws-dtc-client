@@ -4,6 +4,7 @@ import time
 import websocket
 
 from dtc.enums.trade_mode_enum import TradeModeEnum
+from dtc.message_types.heartbeat import Heartbeat
 from dtc.message_types.logon_request import LogonRequest
 from lib.base_message_type import BaseMessageType
 
@@ -16,7 +17,7 @@ from lib.util import Util, ArgParser, CONSOLE_LOGGING
 import logging
 
 CLIENT_NAME = "DTC Client"
-HEARTBEAT = 120
+HEARTBEAT = 60
 PROTOCOL_VERSION = 8
 
 
@@ -61,6 +62,14 @@ class DTCClient:
                 client_name=CLIENT_NAME
             ))
 
+    def heartbeat_loop(self):
+        while True:
+            self.send(
+                Heartbeat(
+                    current_date_time=time.time(),
+                ))
+            time.sleep(HEARTBEAT)
+
     def start(self):
         def on_message(ws, message):
             self.on_message(message)
@@ -73,6 +82,11 @@ class DTCClient:
 
         def on_open(ws):
             self.on_open()
+
+            def heartbeat_loop(*args):
+                self.heartbeat_loop()
+
+            thread.start_new_thread(heartbeat_loop, ())
 
         # websocket.enableTrace(True)
         self.ws = websocket.WebSocketApp(self.url,
