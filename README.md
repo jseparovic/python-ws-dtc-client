@@ -106,7 +106,7 @@ eg: LOG_LEVEL=DEBUG ./client.py -n localhost -p 11099
 ### TODO
 Heaps. This just shows an example of login and retrieve account balance. It also responds to heartbeats.
 
-Checkout `client.py for the main code and add logic to send and handle messages in on_message
+Checkout `client.py` for the main code and add logic to send and handle messages in on_message
 
 The `dtc` directory contains the generated code based on DTCProtocol.h. 
 
