@@ -26,7 +26,22 @@ class HistoricalAccountBalanceResponse(BaseMessageType):
         self.TransactionId = transaction_id
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return HistoricalAccountBalanceResponse(
+             request_id=packet[0],
+             date_time=packet[1],
+             cash_balance=packet[2],
+             account_currency=packet[3],
+             trade_account=packet[4],
+             is_final_response=packet[5],
+             no_account_balances=packet[6],
+             info_text=packet[7],
+             transaction_id=packet[8]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return HistoricalAccountBalanceResponse(
              request_id=message_obj.get('RequestID'),
              date_time=message_obj.get('DateTime'),
@@ -38,6 +53,13 @@ class HistoricalAccountBalanceResponse(BaseMessageType):
              info_text=message_obj.get('InfoText'),
              transaction_id=message_obj.get('TransactionId')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return HistoricalAccountBalanceResponse.from_message_short(message_obj)
+        else:
+            return HistoricalAccountBalanceResponse.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

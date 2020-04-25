@@ -22,7 +22,20 @@ class MarketDepthUpdateLevel(BaseMessageType):
         self.NumOrders = num_orders
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return MarketDepthUpdateLevel(
+             symbol_id=packet[0],
+             side=packet[1],
+             price=packet[2],
+             quantity=packet[3],
+             update_type=packet[4],
+             date_time=packet[5],
+             num_orders=packet[6]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return MarketDepthUpdateLevel(
              symbol_id=message_obj.get('SymbolID'),
              side=message_obj.get('Side'),
@@ -32,6 +45,13 @@ class MarketDepthUpdateLevel(BaseMessageType):
              date_time=message_obj.get('DateTime'),
              num_orders=message_obj.get('NumOrders')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return MarketDepthUpdateLevel.from_message_short(message_obj)
+        else:
+            return MarketDepthUpdateLevel.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

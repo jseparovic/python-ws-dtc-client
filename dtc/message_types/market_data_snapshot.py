@@ -48,7 +48,33 @@ class MarketDataSnapshot(BaseMessageType):
         self.MarketDepthUpdateDateTime = market_depth_update_date_time
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return MarketDataSnapshot(
+             symbol_id=packet[0],
+             session_settlement_price=packet[1],
+             session_open_price=packet[2],
+             session_high_price=packet[3],
+             session_low_price=packet[4],
+             session_volume=packet[5],
+             session_num_trades=packet[6],
+             open_interest=packet[7],
+             bid_price=packet[8],
+             ask_price=packet[9],
+             ask_quantity=packet[10],
+             bid_quantity=packet[11],
+             last_trade_price=packet[12],
+             last_trade_volume=packet[13],
+             last_trade_date_time=packet[14],
+             bid_ask_date_time=packet[15],
+             session_settlement_date_time=packet[16],
+             trading_session_date=packet[17],
+             trading_status=packet[18],
+             market_depth_update_date_time=packet[19]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return MarketDataSnapshot(
              symbol_id=message_obj.get('SymbolID'),
              session_settlement_price=message_obj.get('SessionSettlementPrice'),
@@ -71,6 +97,13 @@ class MarketDataSnapshot(BaseMessageType):
              trading_status=message_obj.get('TradingStatus'),
              market_depth_update_date_time=message_obj.get('MarketDepthUpdateDateTime')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return MarketDataSnapshot.from_message_short(message_obj)
+        else:
+            return MarketDataSnapshot.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

@@ -30,7 +30,24 @@ class CancelReplaceOrder(BaseMessageType):
         self.UpdatePrice1OffsetToParent = update_price1_offset_to_parent
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return CancelReplaceOrder(
+             server_order_id=packet[0],
+             client_order_id=packet[1],
+             price1=packet[2],
+             price2=packet[3],
+             quantity=packet[4],
+             price1_is_set=packet[5],
+             price2_is_set=packet[6],
+             unused=packet[7],
+             time_in_force=packet[8],
+             good_till_date_time=packet[9],
+             update_price1_offset_to_parent=packet[10]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return CancelReplaceOrder(
              server_order_id=message_obj.get('ServerOrderID'),
              client_order_id=message_obj.get('ClientOrderID'),
@@ -44,6 +61,13 @@ class CancelReplaceOrder(BaseMessageType):
              good_till_date_time=message_obj.get('GoodTillDateTime'),
              update_price1_offset_to_parent=message_obj.get('UpdatePrice1OffsetToParent')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return CancelReplaceOrder.from_message_short(message_obj)
+        else:
+            return CancelReplaceOrder.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

@@ -1,16 +1,27 @@
+import json
 import time
 
 # pip install websocket_client
+import traceback
+
 import websocket
 import uuid
 
+from dtc.enums.encoding_enum import EncodingEnum
+from dtc.enums.logon_status_enum import LogonStatusEnum
+from dtc.enums.request_action_enum import RequestActionEnum
 from dtc.enums.trade_mode_enum import TradeModeEnum
-from dtc.message_types.account_balance_request import AccountBalanceRequest
+from dtc.message_types.encoding_request import EncodingRequest
+from dtc.message_types.encoding_response import EncodingResponse
 from dtc.message_types.heartbeat import Heartbeat
 from dtc.message_types.logon_request import LogonRequest
 from dtc.message_types.logon_response import LogonResponse
+from dtc.message_types.market_data_request import MarketDataRequest
+from dtc.message_types.market_data_snapshot import MarketDataSnapshot
+from dtc.message_types.market_data_update_bid_ask import MarketDataUpdateBidAsk
 from dtc.util.message_util import MessageUtil
 from lib.base_message_type import BaseMessageType
+from lib.error import LogonError, InvalidArgumentsError, ClientError
 
 try:
     import thread
@@ -31,14 +42,18 @@ class DTCClient:
     ws = None
     url = None
     request_id = 0
+    is_logon = False
 
-    def __init__(self):
+    def __init__(self, on_message_handler, post_login_thread=None):
+        self.on_message_handler = on_message_handler
+        self.post_login_thread = post_login_thread
         self.parser = ArgParser(description='DTC Client')
         self.add_args()
         self.args = self.parser.parse_args()
         self.check_args()
         self.url = 'ws://%s:%s' % (self.args.host, self.args.port)
         logging.info("URL: %s" % self.url)
+        self.trade_mode = TradeModeEnum.TRADE_MODE_LIVE if self.args.live else TradeModeEnum.TRADE_MODE_SIMULATED
 
     def send(self, message: BaseMessageType):
         logging.debug("Sending %s:\n%s" % (message.get_message_type_name(), message.to_JSON(pretty=PRETTY)))
@@ -49,13 +64,13 @@ class DTCClient:
         logging.debug("Received %s:\n%s" % (message.get_message_type_name(), message.to_JSON(pretty=PRETTY)))
 
         if isinstance(message, LogonResponse):
-            # do something on login
-            self.request_id += 1
-            self.send(
-                AccountBalanceRequest(
-                    request_id=self.request_id
-                ))
-            pass
+            logonResponse: LogonResponse = message
+            if logonResponse.Result != LogonStatusEnum.LOGON_SUCCESS:
+                raise LogonError
+            self.is_logon = True
+
+            if self.post_login_thread:
+                thread.start_new_thread(self.post_login_thread, ())
 
         elif isinstance(message, Heartbeat):
             # send heartbeat back
@@ -64,7 +79,8 @@ class DTCClient:
                     current_date_time=time.time(),
                 ))
 
-        # handle more messages here
+        else:
+            thread.start_new_thread(self.on_message_handler, (message,))
 
     def on_error(self, error):
         logging.error("Error: %s" % error)
@@ -77,7 +93,7 @@ class DTCClient:
             LogonRequest(
                 username=self.args.username,
                 password=self.args.password,
-                trade_mode=TradeModeEnum.TRADE_MODE_LIVE,
+                trade_mode=self.trade_mode,
                 protocol_version=PROTOCOL_VERSION,
                 heartbeat_interval_in_seconds=HEARTBEAT,
                 client_name=CLIENT_NAME
@@ -105,8 +121,10 @@ class DTCClient:
         self.ws.run_forever()
 
     def check_args(self):
-        # check args here if needed:
-        pass
+        if self.args.live and self.args.simulated:
+            raise InvalidArgumentsError("Select live or simulated mode but not both")
+        if not self.args.live and not self.args.simulated:
+            raise InvalidArgumentsError("Select live or simulated mode")
 
     def add_args(self):
         self.parser.add_argument('-n', '--host',
@@ -117,16 +135,15 @@ class DTCClient:
                                  help='Websocket Port',
                                  action='store',
                                  required=True)
+        self.parser.add_argument('-l', '--live',
+                                 help='Live trading mode',
+                                 action='store_true')
+        self.parser.add_argument('-s', '--simulated',
+                                 help='Simulated trading mode',
+                                 action='store_true')
         self.parser.add_argument('-u', '--username',
                                  help='Server Username',
                                  action='store')
         self.parser.add_argument('-x', '--password',
                                  help='Server Password',
                                  action='store')
-
-
-if __name__ == '__main__':
-    logger = Util.setup_logging("DTC_Client", console=CONSOLE_LOGGING)
-    dtc_client = DTCClient()
-    dtc_client.start()
-

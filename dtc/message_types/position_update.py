@@ -34,7 +34,26 @@ class PositionUpdate(BaseMessageType):
         self.EntryDateTime = entry_date_time
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return PositionUpdate(
+             request_id=packet[0],
+             total_number_messages=packet[1],
+             message_number=packet[2],
+             symbol=packet[3],
+             exchange=packet[4],
+             quantity=packet[5],
+             average_price=packet[6],
+             position_identifier=packet[7],
+             trade_account=packet[8],
+             no_positions=packet[9],
+             unsolicited=packet[10],
+             margin_requirement=packet[11],
+             entry_date_time=packet[12]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return PositionUpdate(
              request_id=message_obj.get('RequestID'),
              total_number_messages=message_obj.get('TotalNumberMessages'),
@@ -50,6 +69,13 @@ class PositionUpdate(BaseMessageType):
              margin_requirement=message_obj.get('MarginRequirement'),
              entry_date_time=message_obj.get('EntryDateTime')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return PositionUpdate.from_message_short(message_obj)
+        else:
+            return PositionUpdate.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

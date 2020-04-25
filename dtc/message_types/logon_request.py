@@ -30,7 +30,24 @@ class LogonRequest(BaseMessageType):
         self.ClientName = client_name
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return LogonRequest(
+             protocol_version=packet[0],
+             username=packet[1],
+             password=packet[2],
+             general_text_data=packet[3],
+             integer_1=packet[4],
+             integer_2=packet[5],
+             heartbeat_interval_in_seconds=packet[6],
+             trade_mode=packet[7],
+             trade_account=packet[8],
+             hardware_identifier=packet[9],
+             client_name=packet[10]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return LogonRequest(
              protocol_version=message_obj.get('ProtocolVersion'),
              username=message_obj.get('Username'),
@@ -44,6 +61,13 @@ class LogonRequest(BaseMessageType):
              hardware_identifier=message_obj.get('HardwareIdentifier'),
              client_name=message_obj.get('ClientName')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return LogonRequest.from_message_short(message_obj)
+        else:
+            return LogonRequest.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

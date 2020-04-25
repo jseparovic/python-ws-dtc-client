@@ -20,7 +20,19 @@ class HistoricalPriceDataTickRecordResponse(BaseMessageType):
         self.IsFinalRecord = is_final_record
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return HistoricalPriceDataTickRecordResponse(
+             request_id=packet[0],
+             date_time=packet[1],
+             at_bid_or_ask=packet[2],
+             price=packet[3],
+             volume=packet[4],
+             is_final_record=packet[5]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return HistoricalPriceDataTickRecordResponse(
              request_id=message_obj.get('RequestID'),
              date_time=message_obj.get('DateTime'),
@@ -29,6 +41,13 @@ class HistoricalPriceDataTickRecordResponse(BaseMessageType):
              volume=message_obj.get('Volume'),
              is_final_record=message_obj.get('IsFinalRecord')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return HistoricalPriceDataTickRecordResponse.from_message_short(message_obj)
+        else:
+            return HistoricalPriceDataTickRecordResponse.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

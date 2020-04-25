@@ -40,7 +40,29 @@ class SubmitNewSingleOrderInt(BaseMessageType):
         self.OpenOrClose = open_or_close
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return SubmitNewSingleOrderInt(
+             symbol=packet[0],
+             exchange=packet[1],
+             trade_account=packet[2],
+             client_order_id=packet[3],
+             order_type=packet[4],
+             buy_sell=packet[5],
+             price1=packet[6],
+             price2=packet[7],
+             divisor=packet[8],
+             quantity=packet[9],
+             time_in_force=packet[10],
+             good_till_date_time=packet[11],
+             is_automated_order=packet[12],
+             is_parent_order=packet[13],
+             free_form_text=packet[14],
+             open_or_close=packet[15]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return SubmitNewSingleOrderInt(
              symbol=message_obj.get('Symbol'),
              exchange=message_obj.get('Exchange'),
@@ -59,6 +81,13 @@ class SubmitNewSingleOrderInt(BaseMessageType):
              free_form_text=message_obj.get('FreeFormText'),
              open_or_close=message_obj.get('OpenOrClose')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return SubmitNewSingleOrderInt.from_message_short(message_obj)
+        else:
+            return SubmitNewSingleOrderInt.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

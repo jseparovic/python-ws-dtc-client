@@ -22,7 +22,20 @@ class MarketDepthSnapshotLevelFloat(BaseMessageType):
         self.FinalUpdateInBatch = final_update_in_batch
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return MarketDepthSnapshotLevelFloat(
+             symbol_id=packet[0],
+             price=packet[1],
+             quantity=packet[2],
+             num_orders=packet[3],
+             level=packet[4],
+             side=packet[5],
+             final_update_in_batch=packet[6]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return MarketDepthSnapshotLevelFloat(
              symbol_id=message_obj.get('SymbolID'),
              price=message_obj.get('Price'),
@@ -32,6 +45,13 @@ class MarketDepthSnapshotLevelFloat(BaseMessageType):
              side=message_obj.get('Side'),
              final_update_in_batch=message_obj.get('FinalUpdateInBatch')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return MarketDepthSnapshotLevelFloat.from_message_short(message_obj)
+        else:
+            return MarketDepthSnapshotLevelFloat.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

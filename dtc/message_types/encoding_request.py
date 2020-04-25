@@ -14,12 +14,28 @@ class EncodingRequest(BaseMessageType):
         self.ProtocolType = protocol_type
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return EncodingRequest(
+             protocol_version=packet[0],
+             encoding=packet[1],
+             protocol_type=packet[2]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return EncodingRequest(
              protocol_version=message_obj.get('ProtocolVersion'),
              encoding=message_obj.get('Encoding'),
              protocol_type=message_obj.get('ProtocolType')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return EncodingRequest.from_message_short(message_obj)
+        else:
+            return EncodingRequest.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

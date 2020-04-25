@@ -14,12 +14,28 @@ class MarketDataUpdateSessionSettlementInt(BaseMessageType):
         self.DateTime = date_time
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return MarketDataUpdateSessionSettlementInt(
+             symbol_id=packet[0],
+             price=packet[1],
+             date_time=packet[2]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return MarketDataUpdateSessionSettlementInt(
              symbol_id=message_obj.get('SymbolID'),
              price=message_obj.get('Price'),
              date_time=message_obj.get('DateTime')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return MarketDataUpdateSessionSettlementInt.from_message_short(message_obj)
+        else:
+            return MarketDataUpdateSessionSettlementInt.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

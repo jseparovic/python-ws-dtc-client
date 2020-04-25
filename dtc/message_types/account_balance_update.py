@@ -38,7 +38,28 @@ class AccountBalanceUpdate(BaseMessageType):
         self.TransactionIdentifier = transaction_identifier
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return AccountBalanceUpdate(
+             request_id=packet[0],
+             cash_balance=packet[1],
+             balance_available_for_new_positions=packet[2],
+             account_currency=packet[3],
+             trade_account=packet[4],
+             securities_value=packet[5],
+             margin_requirement=packet[6],
+             total_number_messages=packet[7],
+             message_number=packet[8],
+             no_account_balances=packet[9],
+             unsolicited=packet[10],
+             open_positions_profit_loss=packet[11],
+             daily_profit_loss=packet[12],
+             info_text=packet[13],
+             transaction_identifier=packet[14]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return AccountBalanceUpdate(
              request_id=message_obj.get('RequestID'),
              cash_balance=message_obj.get('CashBalance'),
@@ -56,6 +77,13 @@ class AccountBalanceUpdate(BaseMessageType):
              info_text=message_obj.get('InfoText'),
              transaction_identifier=message_obj.get('TransactionIdentifier')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return AccountBalanceUpdate.from_message_short(message_obj)
+        else:
+            return AccountBalanceUpdate.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

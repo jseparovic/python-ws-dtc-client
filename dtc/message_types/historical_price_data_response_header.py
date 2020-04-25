@@ -18,7 +18,18 @@ class HistoricalPriceDataResponseHeader(BaseMessageType):
         self.IntToFloatPriceDivisor = int_to_float_price_divisor
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return HistoricalPriceDataResponseHeader(
+             request_id=packet[0],
+             record_interval=packet[1],
+             use_z_lib_compression=packet[2],
+             no_records_to_return=packet[3],
+             int_to_float_price_divisor=packet[4]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return HistoricalPriceDataResponseHeader(
              request_id=message_obj.get('RequestID'),
              record_interval=message_obj.get('RecordInterval'),
@@ -26,6 +37,13 @@ class HistoricalPriceDataResponseHeader(BaseMessageType):
              no_records_to_return=message_obj.get('NoRecordsToReturn'),
              int_to_float_price_divisor=message_obj.get('IntToFloatPriceDivisor')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return HistoricalPriceDataResponseHeader.from_message_short(message_obj)
+        else:
+            return HistoricalPriceDataResponseHeader.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

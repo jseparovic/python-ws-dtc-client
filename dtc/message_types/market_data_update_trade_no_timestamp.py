@@ -18,7 +18,18 @@ class MarketDataUpdateTradeNoTimestamp(BaseMessageType):
         self.UnbundledTradeIndicator = unbundled_trade_indicator
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return MarketDataUpdateTradeNoTimestamp(
+             symbol_id=packet[0],
+             price=packet[1],
+             volume=packet[2],
+             at_bid_or_ask=packet[3],
+             unbundled_trade_indicator=packet[4]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return MarketDataUpdateTradeNoTimestamp(
              symbol_id=message_obj.get('SymbolID'),
              price=message_obj.get('Price'),
@@ -26,6 +37,13 @@ class MarketDataUpdateTradeNoTimestamp(BaseMessageType):
              at_bid_or_ask=message_obj.get('AtBidOrAsk'),
              unbundled_trade_indicator=message_obj.get('UnbundledTradeIndicator')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return MarketDataUpdateTradeNoTimestamp.from_message_short(message_obj)
+        else:
+            return MarketDataUpdateTradeNoTimestamp.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

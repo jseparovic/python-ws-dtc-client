@@ -18,7 +18,18 @@ class MarketDepthRequest(BaseMessageType):
         self.NumLevels = num_levels
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return MarketDepthRequest(
+             request_action=packet[0],
+             symbol_id=packet[1],
+             symbol=packet[2],
+             exchange=packet[3],
+             num_levels=packet[4]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return MarketDepthRequest(
              request_action=message_obj.get('RequestAction'),
              symbol_id=message_obj.get('SymbolID'),
@@ -26,6 +37,13 @@ class MarketDepthRequest(BaseMessageType):
              exchange=message_obj.get('Exchange'),
              num_levels=message_obj.get('NumLevels')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return MarketDepthRequest.from_message_short(message_obj)
+        else:
+            return MarketDepthRequest.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

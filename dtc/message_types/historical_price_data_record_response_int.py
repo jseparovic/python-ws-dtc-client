@@ -28,7 +28,23 @@ class HistoricalPriceDataRecordResponseInt(BaseMessageType):
         self.IsFinalRecord = is_final_record
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return HistoricalPriceDataRecordResponseInt(
+             request_id=packet[0],
+             start_date_time=packet[1],
+             open_price=packet[2],
+             high_price=packet[3],
+             low_price=packet[4],
+             last_price=packet[5],
+             volume=packet[6],
+             bid_volume=packet[7],
+             ask_volume=packet[8],
+             is_final_record=packet[9]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return HistoricalPriceDataRecordResponseInt(
              request_id=message_obj.get('RequestID'),
              start_date_time=message_obj.get('StartDateTime'),
@@ -41,6 +57,13 @@ class HistoricalPriceDataRecordResponseInt(BaseMessageType):
              ask_volume=message_obj.get('AskVolume'),
              is_final_record=message_obj.get('IsFinalRecord')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return HistoricalPriceDataRecordResponseInt.from_message_short(message_obj)
+        else:
+            return HistoricalPriceDataRecordResponseInt.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

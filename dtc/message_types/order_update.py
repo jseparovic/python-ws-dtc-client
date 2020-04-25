@@ -78,7 +78,48 @@ class OrderUpdate(BaseMessageType):
         self.LatestTransactionDateTime = latest_transaction_date_time
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return OrderUpdate(
+             request_id=packet[0],
+             total_num_messages=packet[1],
+             message_number=packet[2],
+             symbol=packet[3],
+             exchange=packet[4],
+             previous_server_order_id=packet[5],
+             server_order_id=packet[6],
+             client_order_id=packet[7],
+             exchange_order_id=packet[8],
+             order_status=packet[9],
+             order_update_reason=packet[10],
+             order_type=packet[11],
+             buy_sell=packet[12],
+             price1=packet[13],
+             price2=packet[14],
+             time_in_force=packet[15],
+             good_till_date_time=packet[16],
+             order_quantity=packet[17],
+             filled_quantity=packet[18],
+             remaining_quantity=packet[19],
+             average_fill_price=packet[20],
+             last_fill_price=packet[21],
+             last_fill_date_time=packet[22],
+             last_fill_quantity=packet[23],
+             last_fill_execution_id=packet[24],
+             trade_account=packet[25],
+             info_text=packet[26],
+             no_orders=packet[27],
+             parent_server_order_id=packet[28],
+             o_c_o_linked_order_server_order_id=packet[29],
+             open_or_close=packet[30],
+             previous_client_order_id=packet[31],
+             free_form_text=packet[32],
+             order_received_date_time=packet[33],
+             latest_transaction_date_time=packet[34]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return OrderUpdate(
              request_id=message_obj.get('RequestID'),
              total_num_messages=message_obj.get('TotalNumMessages'),
@@ -116,6 +157,13 @@ class OrderUpdate(BaseMessageType):
              order_received_date_time=message_obj.get('OrderReceivedDateTime'),
              latest_transaction_date_time=message_obj.get('LatestTransactionDateTime')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return OrderUpdate.from_message_short(message_obj)
+        else:
+            return OrderUpdate.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

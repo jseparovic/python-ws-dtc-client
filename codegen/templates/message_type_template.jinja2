@@ -9,10 +9,24 @@ class {{class_name}}(BaseMessageType):
         self.Type = MessageTypes.{{class_name_snake}}
 {% for var in values %}        self.{{ var.name }} = {{ var._name }}{{ "\n" }}{% endfor %}
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return {{class_name}}(
+{% for var in values %}             {{ var._name }}=packet[{{ loop.index - 1 }}]{% if not loop.last %}{{ ",\n" }}{% endif %}{% endfor %}
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return {{class_name}}(
 {% for var in values %}             {{ var._name }}=message_obj.get('{{ var.name }}'){% if not loop.last %}{{ ",\n" }}{% endif %}{% endfor %}
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return {{class_name}}.from_message_short(message_obj)
+        else:
+            return {{class_name}}.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

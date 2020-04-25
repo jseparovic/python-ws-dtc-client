@@ -22,7 +22,20 @@ class MarketDepthUpdateLevelNoTimestamp(BaseMessageType):
         self.FinalUpdateInBatch = final_update_in_batch
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return MarketDepthUpdateLevelNoTimestamp(
+             symbol_id=packet[0],
+             price=packet[1],
+             quantity=packet[2],
+             num_orders=packet[3],
+             side=packet[4],
+             update_type=packet[5],
+             final_update_in_batch=packet[6]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return MarketDepthUpdateLevelNoTimestamp(
              symbol_id=message_obj.get('SymbolID'),
              price=message_obj.get('Price'),
@@ -32,6 +45,13 @@ class MarketDepthUpdateLevelNoTimestamp(BaseMessageType):
              update_type=message_obj.get('UpdateType'),
              final_update_in_batch=message_obj.get('FinalUpdateInBatch')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return MarketDepthUpdateLevelNoTimestamp.from_message_short(message_obj)
+        else:
+            return MarketDepthUpdateLevelNoTimestamp.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

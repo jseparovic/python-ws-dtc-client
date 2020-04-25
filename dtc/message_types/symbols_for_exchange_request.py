@@ -18,7 +18,18 @@ class SymbolsForExchangeRequest(BaseMessageType):
         self.Symbol = symbol
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return SymbolsForExchangeRequest(
+             request_id=packet[0],
+             exchange=packet[1],
+             security_type=packet[2],
+             request_action=packet[3],
+             symbol=packet[4]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return SymbolsForExchangeRequest(
              request_id=message_obj.get('RequestID'),
              exchange=message_obj.get('Exchange'),
@@ -26,6 +37,13 @@ class SymbolsForExchangeRequest(BaseMessageType):
              request_action=message_obj.get('RequestAction'),
              symbol=message_obj.get('Symbol')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return SymbolsForExchangeRequest.from_message_short(message_obj)
+        else:
+            return SymbolsForExchangeRequest.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

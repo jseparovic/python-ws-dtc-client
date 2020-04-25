@@ -48,7 +48,33 @@ class LogonResponse(BaseMessageType):
         self.MarketDataSupported = market_data_supported
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return LogonResponse(
+             protocol_version=packet[0],
+             result=packet[1],
+             result_text=packet[2],
+             reconnect_address=packet[3],
+             integer_1=packet[4],
+             server_name=packet[5],
+             market_depth_updates_best_bid_and_ask=packet[6],
+             trading_is_supported=packet[7],
+             o_c_o_orders_supported=packet[8],
+             order_cancel_replace_supported=packet[9],
+             symbol_exchange_delimiter=packet[10],
+             security_definitions_supported=packet[11],
+             historical_price_data_supported=packet[12],
+             resubscribe_when_market_data_feed_available=packet[13],
+             market_depth_is_supported=packet[14],
+             one_historical_price_data_request_per_connection=packet[15],
+             bracket_orders_supported=packet[16],
+             use_integer_price_order_messages=packet[17],
+             uses_multiple_positions_per_symbol_and_trade_account=packet[18],
+             market_data_supported=packet[19]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return LogonResponse(
              protocol_version=message_obj.get('ProtocolVersion'),
              result=message_obj.get('Result'),
@@ -71,6 +97,13 @@ class LogonResponse(BaseMessageType):
              uses_multiple_positions_per_symbol_and_trade_account=message_obj.get('UsesMultiplePositionsPerSymbolAndTradeAccount'),
              market_data_supported=message_obj.get('MarketDataSupported')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return LogonResponse.from_message_short(message_obj)
+        else:
+            return LogonResponse.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

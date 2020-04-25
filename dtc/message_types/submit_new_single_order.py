@@ -40,7 +40,29 @@ class SubmitNewSingleOrder(BaseMessageType):
         self.MaxShowQuantity = max_show_quantity
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return SubmitNewSingleOrder(
+             symbol=packet[0],
+             exchange=packet[1],
+             trade_account=packet[2],
+             client_order_id=packet[3],
+             order_type=packet[4],
+             buy_sell=packet[5],
+             price1=packet[6],
+             price2=packet[7],
+             quantity=packet[8],
+             time_in_force=packet[9],
+             good_till_date_time=packet[10],
+             is_automated_order=packet[11],
+             is_parent_order=packet[12],
+             free_form_text=packet[13],
+             open_or_close=packet[14],
+             max_show_quantity=packet[15]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return SubmitNewSingleOrder(
              symbol=message_obj.get('Symbol'),
              exchange=message_obj.get('Exchange'),
@@ -59,6 +81,13 @@ class SubmitNewSingleOrder(BaseMessageType):
              open_or_close=message_obj.get('OpenOrClose'),
              max_show_quantity=message_obj.get('MaxShowQuantity')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return SubmitNewSingleOrder.from_message_short(message_obj)
+        else:
+            return SubmitNewSingleOrder.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

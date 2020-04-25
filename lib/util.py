@@ -60,18 +60,6 @@ class Util:
         return datetime.utcnow().strftime('%Y%m%d')
 
 
-class AgentError(Exception):
-    """Base class for exceptions in this module."""
-
-    def __init__(self, message):
-        super(AgentError, self).__init__(message)
-
-
-class InvalidArgumentsError(AgentError):
-    def __init__(self, message="Invalid Arguments Error"):
-        super(AgentError, self).__init__(message)
-
-
 class ArgParser(argparse.ArgumentParser):
     def error(self, message):
         logging.error(message)

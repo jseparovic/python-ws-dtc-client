@@ -44,7 +44,31 @@ class HistoricalOrderFillResponse(BaseMessageType):
         self.PositionQuantity = position_quantity
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return HistoricalOrderFillResponse(
+             request_id=packet[0],
+             total_number_messages=packet[1],
+             message_number=packet[2],
+             symbol=packet[3],
+             exchange=packet[4],
+             server_order_id=packet[5],
+             buy_sell=packet[6],
+             price=packet[7],
+             date_time=packet[8],
+             quantity=packet[9],
+             unique_execution_id=packet[10],
+             trade_account=packet[11],
+             open_close=packet[12],
+             no_order_fills=packet[13],
+             info_text=packet[14],
+             high_price_during_position=packet[15],
+             low_price_during_position=packet[16],
+             position_quantity=packet[17]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return HistoricalOrderFillResponse(
              request_id=message_obj.get('RequestID'),
              total_number_messages=message_obj.get('TotalNumberMessages'),
@@ -65,6 +89,13 @@ class HistoricalOrderFillResponse(BaseMessageType):
              low_price_during_position=message_obj.get('LowPriceDuringPosition'),
              position_quantity=message_obj.get('PositionQuantity')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return HistoricalOrderFillResponse.from_message_short(message_obj)
+        else:
+            return HistoricalOrderFillResponse.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

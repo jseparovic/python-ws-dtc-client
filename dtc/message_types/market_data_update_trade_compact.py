@@ -18,7 +18,18 @@ class MarketDataUpdateTradeCompact(BaseMessageType):
         self.AtBidOrAsk = at_bid_or_ask
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return MarketDataUpdateTradeCompact(
+             price=packet[0],
+             volume=packet[1],
+             date_time=packet[2],
+             symbol_id=packet[3],
+             at_bid_or_ask=packet[4]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return MarketDataUpdateTradeCompact(
              price=message_obj.get('Price'),
              volume=message_obj.get('Volume'),
@@ -26,6 +37,13 @@ class MarketDataUpdateTradeCompact(BaseMessageType):
              symbol_id=message_obj.get('SymbolID'),
              at_bid_or_ask=message_obj.get('AtBidOrAsk')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return MarketDataUpdateTradeCompact.from_message_short(message_obj)
+        else:
+            return MarketDataUpdateTradeCompact.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

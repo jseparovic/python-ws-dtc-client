@@ -54,7 +54,36 @@ class SubmitNewOCOOrderInt(BaseMessageType):
         self.PartialFillHandling = partial_fill_handling
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return SubmitNewOCOOrderInt(
+             symbol=packet[0],
+             exchange=packet[1],
+             client_order_id_1=packet[2],
+             order_type_1=packet[3],
+             buy_sell_1=packet[4],
+             price1_1=packet[5],
+             price2_1=packet[6],
+             quantity_1=packet[7],
+             client_order_id_2=packet[8],
+             order_type_2=packet[9],
+             buy_sell_2=packet[10],
+             price1_2=packet[11],
+             price2_2=packet[12],
+             quantity_2=packet[13],
+             time_in_force=packet[14],
+             good_till_date_time=packet[15],
+             trade_account=packet[16],
+             is_automated_order=packet[17],
+             parent_trigger_client_order_id=packet[18],
+             free_form_text=packet[19],
+             divisor=packet[20],
+             open_or_close=packet[21],
+             partial_fill_handling=packet[22]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return SubmitNewOCOOrderInt(
              symbol=message_obj.get('Symbol'),
              exchange=message_obj.get('Exchange'),
@@ -80,6 +109,13 @@ class SubmitNewOCOOrderInt(BaseMessageType):
              open_or_close=message_obj.get('OpenOrClose'),
              partial_fill_handling=message_obj.get('PartialFillHandling')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return SubmitNewOCOOrderInt.from_message_short(message_obj)
+        else:
+            return SubmitNewOCOOrderInt.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

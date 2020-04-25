@@ -10,10 +10,24 @@ class MarketDataFeedStatus(BaseMessageType):
         self.Status = status
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return MarketDataFeedStatus(
+             status=packet[0]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return MarketDataFeedStatus(
              status=message_obj.get('Status')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return MarketDataFeedStatus.from_message_short(message_obj)
+        else:
+            return MarketDataFeedStatus.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

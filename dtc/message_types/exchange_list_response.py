@@ -16,13 +16,30 @@ class ExchangeListResponse(BaseMessageType):
         self.Description = description
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return ExchangeListResponse(
+             request_id=packet[0],
+             exchange=packet[1],
+             is_final_message=packet[2],
+             description=packet[3]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return ExchangeListResponse(
              request_id=message_obj.get('RequestID'),
              exchange=message_obj.get('Exchange'),
              is_final_message=message_obj.get('IsFinalMessage'),
              description=message_obj.get('Description')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return ExchangeListResponse.from_message_short(message_obj)
+        else:
+            return ExchangeListResponse.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

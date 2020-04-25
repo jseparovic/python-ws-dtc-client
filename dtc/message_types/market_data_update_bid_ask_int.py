@@ -20,7 +20,19 @@ class MarketDataUpdateBidAskInt(BaseMessageType):
         self.DateTime = date_time
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return MarketDataUpdateBidAskInt(
+             symbol_id=packet[0],
+             bid_price=packet[1],
+             bid_quantity=packet[2],
+             ask_price=packet[3],
+             ask_quantity=packet[4],
+             date_time=packet[5]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return MarketDataUpdateBidAskInt(
              symbol_id=message_obj.get('SymbolID'),
              bid_price=message_obj.get('BidPrice'),
@@ -29,6 +41,13 @@ class MarketDataUpdateBidAskInt(BaseMessageType):
              ask_quantity=message_obj.get('AskQuantity'),
              date_time=message_obj.get('DateTime')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return MarketDataUpdateBidAskInt.from_message_short(message_obj)
+        else:
+            return MarketDataUpdateBidAskInt.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

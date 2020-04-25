@@ -20,7 +20,19 @@ class AccountBalanceAdjustment(BaseMessageType):
         self.Reason = reason
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return AccountBalanceAdjustment(
+             request_id=packet[0],
+             trade_account=packet[1],
+             credit_amount=packet[2],
+             debit_amount=packet[3],
+             currency=packet[4],
+             reason=packet[5]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return AccountBalanceAdjustment(
              request_id=message_obj.get('RequestID'),
              trade_account=message_obj.get('TradeAccount'),
@@ -29,6 +41,13 @@ class AccountBalanceAdjustment(BaseMessageType):
              currency=message_obj.get('Currency'),
              reason=message_obj.get('Reason')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return AccountBalanceAdjustment.from_message_short(message_obj)
+        else:
+            return AccountBalanceAdjustment.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():

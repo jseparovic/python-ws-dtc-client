@@ -28,7 +28,23 @@ class HistoricalPriceDataRequest(BaseMessageType):
         self.Flag_1 = flag_1
 
     @staticmethod
-    def from_message(message_obj):
+    def from_message_short(message_obj):
+        packet = message_obj.get('F')
+        return HistoricalPriceDataRequest(
+             request_id=packet[0],
+             symbol=packet[1],
+             exchange=packet[2],
+             record_interval=packet[3],
+             start_date_time=packet[4],
+             end_date_time=packet[5],
+             max_days_to_return=packet[6],
+             use_z_lib_compression=packet[7],
+             request_dividend_adjusted_stock_data=packet[8],
+             flag_1=packet[9]
+        )
+
+    @staticmethod
+    def from_message_long(message_obj):
         return HistoricalPriceDataRequest(
              request_id=message_obj.get('RequestID'),
              symbol=message_obj.get('Symbol'),
@@ -41,6 +57,13 @@ class HistoricalPriceDataRequest(BaseMessageType):
              request_dividend_adjusted_stock_data=message_obj.get('RequestDividendAdjustedStockData'),
              flag_1=message_obj.get('Flag_1')
         )
+
+    @staticmethod
+    def from_message(message_obj):
+        if 'F' in message_obj:
+            return HistoricalPriceDataRequest.from_message_short(message_obj)
+        else:
+            return HistoricalPriceDataRequest.from_message_long(message_obj)
 
     @staticmethod
     def get_message_type_name():
