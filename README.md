@@ -1,5 +1,17 @@
 # A Python Websocket DTC Protocol Client for use with Sierra Chart
 
+Checkout `example_client.py` for an example on how to use the client.
+
+The `DTCClient` class should contain common logic only, and custom logic should go in a child class `ExampleDTCClient` (for example)
+
+The `dtc` directory contains the generated code based on DTCProtocol.h.
+
+Message Types are here: 
+https://github.com/jseparovic/python-ws-dtc-client/tree/master/dtc/message_types
+
+There are generated enums and message types to use in your code
+
+
 ### Dependencies:
 `pip install websocket_client`
 
@@ -25,6 +37,7 @@ optional arguments:
                         Server Password
 
 ```
+
 
 ### Logging
 Set Environment variable `LOG_LEVEL=DEBUG` to see request/responses
@@ -140,19 +153,6 @@ eg: LOG_LEVEL=DEBUG ./example_client.py -n localhost -p 11099 -l
 
 
 ### TODO
-Heaps. This just shows an example of login and retrieve account balance. It also responds to heartbeats.
-
-Checkout `example_client.py` for an example on how to use the client.
-
-The `DTCClient` class should contain common logic only, and custom logic should go in a child class `ExampleDTCClient` (for example)
-
-The `dtc` directory contains the generated code based on DTCProtocol.h.
-
-Message Types are here: 
-https://github.com/jseparovic/python-ws-dtc-client/tree/master/dtc/message_types
-
-There are generated enums and message types to use in your code
-
 Add Flask REST API support and Flask Socket-IO websockets support
 
 ### Current Code Gen Warning:
