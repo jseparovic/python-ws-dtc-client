@@ -1,5 +1,7 @@
 # python-ws-dtc-client
 
+A Python Websocket DTC Protocol Client for use with Sierra Chart
+
 ### Dependencies:
 `pip install websocket_client`
 
