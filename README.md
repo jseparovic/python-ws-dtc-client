@@ -35,18 +35,18 @@ eg: LOG_LEVEL=DEBUG ./example_client.py -n localhost -p 11099 -l
 ### Sample Output
 
 ```
-2020-04-24 23:04:57,088 - DTC_Client - INFO - URL: ws://192.168.1.11:11099
-2020-04-24 23:04:57,101 - DTC_Client - DEBUG - Sending LogonRequest:
+2020-04-25 13:45:16,969 - DTC_Client - INFO - URL: ws://192.168.1.11:21099
+2020-04-25 13:45:16,981 - DTC_Client - DEBUG - Sending LogonRequest:
 {
     "ClientName": "DTC Client",
     "HeartbeatIntervalInSeconds": 60,
     "Password": "********",
     "ProtocolVersion": 8,
-    "TradeMode": 3,
+    "TradeMode": 2,
     "Type": 1,
     "Username": "********"
 }
-2020-04-24 23:04:57,104 - DTC_Client - DEBUG - Received LogonResponse:
+2020-04-25 13:45:16,983 - DTC_Client - DEBUG - Received LogonResponse:
 {
     "BracketOrdersSupported": 0,
     "HistoricalPriceDataSupported": 0,
@@ -70,39 +70,71 @@ eg: LOG_LEVEL=DEBUG ./example_client.py -n localhost -p 11099 -l
     "UseIntegerPriceOrderMessages": 0,
     "UsesMultiplePositionsPerSymbolAndTradeAccount": 0
 }
-2020-04-24 23:04:57,104 - DTC_Client - DEBUG - Sending AccountBalanceRequest:
+2020-04-25 13:45:16,984 - DTC_Client - DEBUG - post_login_thread
+2020-04-25 13:45:16,984 - DTC_Client - DEBUG - Sending MarketDataRequest:
 {
-    "RequestID": 1,
-    "Type": 601
+    "RequestAction": 1,
+    "Symbol": "ESM20_FUT_CME",
+    "SymbolID": 2114831995,
+    "Type": 101
 }
-2020-04-24 23:04:57,105 - DTC_Client - DEBUG - Received AccountBalanceUpdate:
+2020-04-25 13:45:16,984 - DTC_Client - DEBUG - Sending MarketDataRequest:
 {
-    "AccountCurrency": "USD",
-    "BalanceAvailableForNewPositions": 2000,
-    "CashBalance": 2000,
-    "DailyProfitLoss": 0,
-    "InfoText": "Current account balance data request",
-    "MarginRequirement": 0,
-    "MessageNumber": 1,
-    "NoAccountBalances": 0,
-    "OpenPositionsProfitLoss": 0,
-    "RequestID": 1,
-    "SecuritiesValue": 0,
-    "TotalNumberMessages": 1,
-    "TradeAccount": "********",
-    "TransactionIdentifier": 2,
-    "Type": 600,
-    "Unsolicited": 0
+    "RequestAction": 1,
+    "Symbol": "CLM20_FUT_NYMEX",
+    "SymbolID": 2380550405,
+    "Type": 101
 }
-2020-04-24 23:05:37,138 - DTC_Client - DEBUG - Received Heartbeat:
+2020-04-25 13:45:16,985 - DTC_Client - DEBUG - Received MarketDataSnapshot:
 {
-    "Type": 3
+    "AskPrice": 282825,
+    "AskQuantity": 1,
+    "BidAskDateTime": 1587762000.001,
+    "BidPrice": 282800,
+    "BidQuantity": 1,
+    "LastTradeDateTime": 1587761999.001,
+    "LastTradePrice": 282800,
+    "LastTradeVolume": 1,
+    "MarketDepthUpdateDateTime": 1587762000.065,
+    "OpenInterest": 3332460,
+    "SessionHighPrice": 283500,
+    "SessionLowPrice": 275525,
+    "SessionNumTrades": 4888086,
+    "SessionOpenPrice": 277700,
+    "SessionSettlementDateTime": 0,
+    "SessionSettlementPrice": 282950,
+    "SessionVolume": 0,
+    "SymbolID": 2114831995,
+    "TradingSessionDate": 1587772800,
+    "TradingStatus": 2,
+    "Type": 104
 }
-2020-04-24 23:05:37,138 - DTC_Client - DEBUG - Sending Heartbeat:
+2020-04-25 13:45:16,985 - DTC_Client - DEBUG - on_message_thread
+2020-04-25 13:45:16,985 - DTC_Client - DEBUG - Received MarketDataSnapshot:
 {
-    "CurrentDateTime": 1587794737.1388001,
-    "Type": 3
+    "AskPrice": 1750,
+    "AskQuantity": 6,
+    "BidAskDateTime": 1587762000.001,
+    "BidPrice": 1702,
+    "BidQuantity": 200,
+    "LastTradeDateTime": 1587761998.001,
+    "LastTradePrice": 1718,
+    "LastTradeVolume": 1,
+    "MarketDepthUpdateDateTime": 1587762000.081,
+    "OpenInterest": 360880,
+    "SessionHighPrice": 1797,
+    "SessionLowPrice": 1564,
+    "SessionNumTrades": 3660069,
+    "SessionOpenPrice": 1678,
+    "SessionSettlementDateTime": 0,
+    "SessionSettlementPrice": 1694,
+    "SessionVolume": 0,
+    "SymbolID": 2147483647,
+    "TradingSessionDate": 1587772800,
+    "TradingStatus": 2,
+    "Type": 104
 }
+2020-04-25 13:45:16,985 - DTC_Client - DEBUG - on_message_thread
 
 ```
 
