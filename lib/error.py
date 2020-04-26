@@ -22,7 +22,7 @@ class MethodNotAllowedError(ClientError):
         super(ClientError, self).__init__(message)
 
 
-class ResponseTimeoutError(ClientError):
+class RequestTimeoutError(ClientError):
     def __init__(self, message="Timed out waiting for a response."):
         super(ClientError, self).__init__(message)
 

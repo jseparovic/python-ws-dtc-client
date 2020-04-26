@@ -10,7 +10,7 @@ from dtc.message_types.logon_request import LogonRequest
 from dtc.message_types.logon_response import LogonResponse
 from dtc.util.message_util import MessageUtil
 from lib.base_message_type import BaseMessageType
-from lib.error import LogonError, InvalidArgumentsError, ResponseTimeoutError
+from lib.error import LogonError, InvalidArgumentsError, RequestTimeoutError
 
 try:
     import thread
@@ -82,8 +82,10 @@ class DTCClient:
             start_time = time.time()
             while not self.responses[request_id].is_complete():
                 time.sleep(0.0001)
-                if time.time() > start_time + RESPONSE_TIMEOUT_MILLIS:
-                    raise ResponseTimeoutError
+                if time.time() > start_time + RESPONSE_TIMEOUT_MILLIS/1000:
+                    logging.warning("Request %s has timed out" % request_id)
+                    del self.responses[request_id]
+                    raise RequestTimeoutError
             response = self.responses[request_id].messages
             del self.responses[request_id]
             json_response = []
@@ -165,13 +167,16 @@ class DTCClient:
         def on_open(ws):
             self.on_open()
 
-        # websocket.enableTrace(True)
-        self.ws = websocket.WebSocketApp(self.url,
-                                         on_message=on_message,
-                                         on_error=on_error,
-                                         on_close=on_close)
-        self.ws.on_open = on_open
-        self.ws.run_forever()
+        while True:
+            # websocket.enableTrace(True)
+            self.ws = websocket.WebSocketApp(self.url,
+                                             on_message=on_message,
+                                             on_error=on_error,
+                                             on_close=on_close)
+            self.ws.on_open = on_open
+            self.ws.run_forever()
+            logging.error("Server stopped. Restarting...")
+            time.sleep(5)
 
     def check_args(self):
         if self.args.live and self.args.simulated:

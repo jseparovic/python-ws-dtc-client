@@ -11,10 +11,11 @@ from dtc.message_types.historical_account_balances_request import HistoricalAcco
 from dtc.message_types.historical_order_fills_request import HistoricalOrderFillsRequest
 from dtc.message_types.security_definition_for_symbol_request import SecurityDefinitionForSymbolRequest
 from dtc.message_types.trade_accounts_request import TradeAccountsRequest
-from lib.error import MethodNotAllowedError, InvalidArgumentsError
+from lib.error import MethodNotAllowedError, InvalidArgumentsError, RequestTimeoutError
 from rest.api import API
 
 app = Flask(__name__)
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 
 PRETTY = True
 
@@ -51,6 +52,21 @@ def handle_method_not_allowed_error(error):
         'error': {
             'type': 'MethodNotAllowedError',
             'message': 'The request method is not allowed.',
+            'status': status_code
+       }
+    }
+    return jsonify(response), status_code
+
+
+@app.errorhandler(RequestTimeoutError)
+def handle_request_timeout(error):
+    status_code = 408
+    success = False
+    response = {
+        'success': success,
+        'error': {
+            'type': 'RequestTimeoutError',
+            'message': 'The request timed out.',
             'status': status_code
        }
     }
