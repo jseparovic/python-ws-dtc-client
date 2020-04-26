@@ -15,14 +15,15 @@ There are generated enums and message types to use in your code
 
 ### Dependencies:
 `pip install websocket_client`
+`pip install flask`
 
 For code gen:
 `pip install CppHeaderParser`
 
 ### Usage
 ```
-usage: example_client.py [-h] -n HOST -p PORT [-l] [-s] [-u USERNAME]
-                         [-x PASSWORD]
+usage: example_client.py [-h] -n HOST -p PORT [-r RESTPORT] [-l] [-s]
+                         [-u USERNAME] [-x PASSWORD]
 
 DTC Client
 
@@ -30,12 +31,15 @@ optional arguments:
   -h, --help            show this help message and exit
   -n HOST, --host HOST  Websocket Host
   -p PORT, --port PORT  Websocket Port
+  -r RESTPORT, --restport RESTPORT
+                        REST Server Port
   -l, --live            Live trading mode
   -s, --simulated       Simulated trading mode
   -u USERNAME, --username USERNAME
                         Server Username
   -x PASSWORD, --password PASSWORD
                         Server Password
+
 
 ```
 
@@ -46,7 +50,57 @@ Set Environment variable `LOG_LEVEL=DEBUG` to see request/responses
 eg: LOG_LEVEL=DEBUG ./example_client.py -n localhost -p 11099 -l
 ```
 
-### Sample Output
+
+### REST API
+A REST Server will run by default on port 8080 (or specify -r to select a REST port)
+
+Currently the following GET APIs are supported:
+```
+    ACCOUNT_BALANCE = '/accountbalance'
+    CURRENT_POSITIONS = '/currentpositions'
+    EXCHANGE_LIST = '/exchangelist'
+    HISTORICAL_ACCOUNT_BALANCES = '/historicalaccountbalances'
+    HISTORICAL_ORDER_FILLS = '/historicalorderfills'
+    SECURITY_DEFINITION = '/securitydefinition'
+    TRADE_ACCOUNTS = '/tradeaccounts'
+```
+
+Note the full URL would look like (for example):
+
+`http://localhost:8080/api/v1/accountbalance`
+
+If an API requires input, pass in query params (for example):
+
+`http://localhost:8080/api/v1/securitydefinition?Symbol=ESM20_FUT_CME`
+
+
+### Sample REST Output
+```
+[
+    {
+        "Currency": "USD",
+        "CurrencyValuePerIncrement": 12.5,
+        "Description": "E-MINI S&P 500 FUTURES ES Jun 2020",
+        "DisplayPriceMultiplier": 0.009999999776482582,
+        "ExchangeSymbol": "ESM20",
+        "IsFinalMessage": 1,
+        "MinPriceIncrement": 0.25,
+        "OpenInterest": 3332460,
+        "PriceDisplayFormat": 2,
+        "RequestID": 1,
+        "SecurityExpirationDate": 1592524800,
+        "SecurityType": 1,
+        "Symbol": "ESM20_FUT_CME",
+        "Type": 507,
+        "UnderlyingSymbol": "ES"
+    }
+]
+```
+
+
+
+
+### Sample Runtime Output
 
 ```
 2020-04-25 13:45:16,969 - DTC_Client - INFO - URL: ws://192.168.1.11:21099
@@ -175,7 +229,8 @@ eg: LOG_LEVEL=DEBUG ./example_client.py -n localhost -p 11099 -l
 
 
 ### TODO
-Add Flask REST API support and Flask Socket-IO websockets support
+Add Trade operations from REST
+Add Flask Socket-IO websockets support
 
 ### Current Code Gen Warning:
 ```

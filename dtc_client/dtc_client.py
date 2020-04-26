@@ -1,6 +1,8 @@
+import json
 import time
 import websocket  # pip install websocket_client
 
+from rest.rest_server import RESTServer
 from dtc.enums.logon_status_enum import LogonStatusEnum
 from dtc.enums.trade_mode_enum import TradeModeEnum
 from dtc.message_types.heartbeat import Heartbeat
@@ -8,7 +10,7 @@ from dtc.message_types.logon_request import LogonRequest
 from dtc.message_types.logon_response import LogonResponse
 from dtc.util.message_util import MessageUtil
 from lib.base_message_type import BaseMessageType
-from lib.error import LogonError, InvalidArgumentsError
+from lib.error import LogonError, InvalidArgumentsError, ResponseTimeoutError
 
 try:
     import thread
@@ -18,18 +20,43 @@ except ImportError:
 from lib.util import ArgParser
 import logging
 
+DEFAULT_REST_PORT = 8080
 CLIENT_NAME = "DTC Client"
 HEARTBEAT = 60
 PROTOCOL_VERSION = 8
 
+RESPONSE_TIMEOUT_MILLIS = 2000
+
 PRETTY = True
+
+REQUEST_ID = "RequestID"
+TOTAL_NUMBER_MESSAGES = "TotalNumberMessages"
+IS_FINAL_MESSAGE = "IsFinalMessage"
+
+class Response:
+    def __init__(self, request_id):
+        self.request_id = request_id
+        self.messages = []
+        self.total_number_messages = None
+        self.is_final_message = False
+
+    def new_message(self, message, total_number_messages=None, is_final_message=None):
+        self.messages.append(message)
+        if not self.total_number_messages and total_number_messages:
+            self.total_number_messages = total_number_messages
+        if is_final_message:
+            self.is_final_message = True
+
+    def is_complete(self):
+        return self.is_final_message \
+               or (self.total_number_messages and self.total_number_messages == len(self.messages))
 
 
 class DTCClient:
     ws = None
     url = None
-    request_id = 0
     is_logon = False
+    responses = {}
 
     def __init__(self, on_message_handler, post_login_thread=None):
         self.on_message_handler = on_message_handler
@@ -41,33 +68,72 @@ class DTCClient:
         self.url = 'ws://%s:%s' % (self.args.host, self.args.port)
         logging.info("URL: %s" % self.url)
         self.trade_mode = TradeModeEnum.TRADE_MODE_LIVE if self.args.live else TradeModeEnum.TRADE_MODE_SIMULATED
+        self.rest_server = RESTServer()
+        self.rest_port = DEFAULT_REST_PORT if not self.args.restport else self.args.restport
 
     def send(self, message: BaseMessageType):
         logging.debug("Sending %s:\n%s" % (message.get_message_type_name(), message.to_JSON(pretty=PRETTY)))
         self.ws.send(message.to_JSON(logging=False) + '\x00')  # must be null terminated
 
+    def request_response(self, request_id, request):
+        if self.is_logon:
+            self.send(request)
+            self.responses[request_id] = Response(request_id)
+            start_time = time.time()
+            while not self.responses[request_id].is_complete():
+                time.sleep(0.0001)
+                if time.time() > start_time + RESPONSE_TIMEOUT_MILLIS:
+                    raise ResponseTimeoutError
+            response = self.responses[request_id].messages
+            del self.responses[request_id]
+            json_response = []
+            for r in response:
+                json_response.append(json.loads(r.to_JSON()))
+            return json_response
+        else:
+            raise LogonError
+
     def on_message(self, message_text):
         message = MessageUtil.parse_incoming_message(message_text)
         logging.debug("Received %s:\n%s" % (message.get_message_type_name(), message.to_JSON(pretty=PRETTY)))
 
-        if isinstance(message, LogonResponse):
-            logonResponse: LogonResponse = message
-            if logonResponse.Result != LogonStatusEnum.LOGON_SUCCESS:
-                raise LogonError
-            self.is_logon = True
+        message_obj = json.loads(message.to_JSON())
 
-            if self.post_login_thread:
-                thread.start_new_thread(self.post_login_thread, ())
-
-        elif isinstance(message, Heartbeat):
-            # send heartbeat back
-            self.send(
-                Heartbeat(
-                    current_date_time=time.time(),
-                ))
+        if REQUEST_ID in message_obj and message_obj[REQUEST_ID] in self.responses:
+            # Handle waiting requests
+            if TOTAL_NUMBER_MESSAGES in message_obj:
+                total_number_messages = message_obj[TOTAL_NUMBER_MESSAGES]
+                self.responses[message_obj[REQUEST_ID]].new_message(
+                    message, total_number_messages=total_number_messages)
+            elif IS_FINAL_MESSAGE not in message_obj:
+                self.responses[message_obj[REQUEST_ID]].new_message(
+                    message, total_number_messages=1)
+            else:
+                self.responses[message_obj[REQUEST_ID]].new_message(
+                    message, is_final_message=bool(message_obj[IS_FINAL_MESSAGE]))
 
         else:
-            thread.start_new_thread(self.on_message_handler, (message,))
+            if isinstance(message, LogonResponse):
+                # Handle Login response
+                logonResponse: LogonResponse = message
+                if logonResponse.Result != LogonStatusEnum.LOGON_SUCCESS:
+                    raise LogonError
+                self.is_logon = True
+
+                if self.post_login_thread:
+                    thread.start_new_thread(self.post_login_thread, ())
+
+                # start rest server
+                thread.start_new_thread(self.rest_server.start, (self, self.rest_port))
+
+            elif isinstance(message, Heartbeat):
+                # send heartbeat back
+                self.send(
+                    Heartbeat(
+                        current_date_time=time.time(),
+                    ))
+            else:
+                thread.start_new_thread(self.on_message_handler, (message,))
 
     def on_error(self, error):
         logging.error("Error: %s" % error)
@@ -122,6 +188,10 @@ class DTCClient:
                                  help='Websocket Port',
                                  action='store',
                                  required=True)
+        self.parser.add_argument('-r', '--restport',
+                                 help='REST Server Port',
+                                 action='store',
+                                 type=int)
         self.parser.add_argument('-l', '--live',
                                  help='Live trading mode',
                                  action='store_true')
@@ -134,3 +204,4 @@ class DTCClient:
         self.parser.add_argument('-x', '--password',
                                  help='Server Password',
                                  action='store')
+

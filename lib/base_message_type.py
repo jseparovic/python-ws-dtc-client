@@ -15,10 +15,10 @@ class BaseMessageType:
         res = json.loads(json.dumps(self, default=lambda o: o.__dict__), object_hook=remove_nulls)
         # mask some sensitive values
         if logging:
-            if USERNAME in res:
-                res[USERNAME] = STARS
+            #if USERNAME in res:
+            #    res[USERNAME] = STARS
             if PASSWORD in res:
                 res[PASSWORD] = STARS
-            if TRADE_ACCOUNT in res:
-                res[TRADE_ACCOUNT] = STARS
+            #if TRADE_ACCOUNT in res:
+            #    res[TRADE_ACCOUNT] = STARS
         return json.dumps(res, sort_keys=True, indent=indent)

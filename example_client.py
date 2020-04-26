@@ -2,7 +2,7 @@ import logging
 import traceback
 import hashlib
 
-from codegen.dtc_client.dtc_client import DTCClient
+from dtc_client.dtc_client import DTCClient
 from dtc.message_types.market_data_request import MarketDataRequest
 from dtc.enums.request_action_enum import RequestActionEnum
 from dtc.message_types.market_data_snapshot import MarketDataSnapshot
