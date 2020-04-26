@@ -14,13 +14,17 @@ There are generated enums and message types to use in your code
 
 
 ### Dependencies:
-`pip install websocket_client`
-`pip install flask`
-`pip install Flask-Sockets`
-`pip install gevent-websocket`
+```
+pip install websocket_client
+pip install flask
+pip install Flask-Sockets
+pip install gevent-websocket
+```
 
 For code gen:
-`pip install CppHeaderParser`
+```
+pip install CppHeaderParser
+```
 
 ### Usage
 ```
