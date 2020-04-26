@@ -16,6 +16,8 @@ There are generated enums and message types to use in your code
 ### Dependencies:
 `pip install websocket_client`
 `pip install flask`
+`pip install Flask-Sockets`
+`pip install gevent-websocket`
 
 For code gen:
 `pip install CppHeaderParser`
@@ -97,6 +99,58 @@ If an API requires input, pass in query params (for example):
 ]
 ```
 
+
+
+### WS API
+Support for Websocket server exists. Currently you can subscribe and unsubscribe to market data.
+
+Connect to the WS Server running on the REST port:
+```
+ws://localhost:8080/api/v1/marketdata
+```
+
+To subscribe to data, Send a JSON message in the following format:
+```
+{"action": "subscribe", "symbol": "ESM20_FUT_CME"}
+```
+
+To unsubscribe to data, Send a JSON message in the following format:
+```
+{"action": "unsubscribe", "symbol": "ESM20_FUT_CME"}
+```
+
+
+### Sample WS Output
+```
+[SENT] {"action": "subscribe", "symbol": "ESM20_FUT_CME"}
+[RECV] {"action": "subscribe", "symbol": "ESM20_FUT_CME", "success": true}
+[RECV] {
+    "AskPrice": 282825,
+    "AskQuantity": 1,
+    "BidAskDateTime": 1587762000.001,
+    "BidPrice": 282800,
+    "BidQuantity": 1,
+    "LastTradeDateTime": 1587761999.001,
+    "LastTradePrice": 282800,
+    "LastTradeVolume": 1,
+    "MarketDepthUpdateDateTime": 1587762000.065,
+    "OpenInterest": 3332460,
+    "SessionHighPrice": 283500,
+    "SessionLowPrice": 275525,
+    "SessionNumTrades": 4888086,
+    "SessionOpenPrice": 277700,
+    "SessionSettlementDateTime": 0,
+    "SessionSettlementPrice": 282950,
+    "SessionVolume": 0,
+    "Symbol": "ESM20_FUT_CME",
+    "SymbolID": 2114831995,
+    "TradingSessionDate": 1587772800,
+    "TradingStatus": 4,
+    "Type": 104
+}
+[SENT] {"action": "unsubscribe", "symbol": "ESM20_FUT_CME"}
+[RECV] {"action": "unsubscribe", "symbol": "ESM20_FUT_CME", "success": true}
+```
 
 
 
@@ -230,7 +284,7 @@ If an API requires input, pass in query params (for example):
 
 ### TODO
 Add Trade operations from REST
-Add Flask Socket-IO websockets support
+Websocket Server unit testing during market hours
 
 ### Current Code Gen Warning:
 ```

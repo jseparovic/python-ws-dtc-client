@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import argparse
+import json
 import subprocess
 from datetime import datetime
 
@@ -58,6 +59,10 @@ class Util:
     @staticmethod
     def today_serial_date_part():
         return datetime.utcnow().strftime('%Y%m%d')
+
+    @staticmethod
+    def json_dumps(obj):
+        return json.dumps(obj, indent=4)
 
 
 class ArgParser(argparse.ArgumentParser):

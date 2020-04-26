@@ -9,3 +9,5 @@ class API:
     HISTORICAL_ORDER_FILLS = '/historicalorderfills'
     SECURITY_DEFINITION = '/securitydefinition'
     TRADE_ACCOUNTS = '/tradeaccounts'
+
+    MARKET_DATA = '/marketdata'

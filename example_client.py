@@ -1,19 +1,15 @@
 import logging
 import traceback
-import hashlib
 
 from dtc_client.dtc_client import DTCClient
 from dtc.message_types.market_data_request import MarketDataRequest
 from dtc.enums.request_action_enum import RequestActionEnum
 from dtc.message_types.market_data_snapshot import MarketDataSnapshot
+from lib.symbol_util import get_symbol_id
 from lib.util import Util, CONSOLE_LOGGING
 
 _NAME = 'name'
 _ID = 'ID'
-
-
-def get_symbol_id(symbol):
-    return int(hashlib.sha1(symbol.encode('utf-8')).hexdigest(), 16) % 4294967295
 
 
 if __name__ == '__main__':
