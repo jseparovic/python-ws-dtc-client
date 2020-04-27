@@ -51,6 +51,12 @@ Set Environment variable `LOG_LEVEL=DEBUG` to see request/responses
 ```
 eg: LOG_LEVEL=DEBUG ./example_client.py -n localhost -p 11099 -l
 ```
+If you want to see market data messages in the logs:
+```
+eg: LOG_DATA=1 LOG_LEVEL=DEBUG ./example_client.py -n localhost -p 11099 -l
+```
+
+
 
 
 ### REST API
@@ -119,6 +125,9 @@ To unsubscribe to data, Send a JSON message in the following format:
 {"action": "unsubscribe", "symbol": "ESM20_FUT_CME"}
 ```
 
+### WS Test
+https://www.screencast.com/t/fA4K6paHI2Z
+
 
 ### Sample WS Output
 ```
@@ -151,6 +160,8 @@ To unsubscribe to data, Send a JSON message in the following format:
 [SENT] {"action": "unsubscribe", "symbol": "ESM20_FUT_CME"}
 [RECV] {"action": "unsubscribe", "symbol": "ESM20_FUT_CME", "success": true}
 ```
+
+Note: There's currently an issue raised with Sierra Charts in regards to the ordering of Market Update fields being incorrect.
 
 
 

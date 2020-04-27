@@ -27,7 +27,6 @@ if __name__ == '__main__':
             super().__init__(on_message_handler=self.on_message_thread, post_login_thread=self.post_login_thread)
 
         def post_login_thread(self):
-            logger.debug("post_login_thread")
             for ix, symbol in enumerate(SYMBOL_LIST):
                 self.send(
                     MarketDataRequest(
@@ -36,7 +35,6 @@ if __name__ == '__main__':
                         symbol=symbol[_NAME]))
 
         def on_message_thread(self, message):
-            logger.debug("on_message_thread")
             if isinstance(message, MarketDataSnapshot):
                 marketDataSnapshot = MarketDataSnapshot()
                 # do something with market data

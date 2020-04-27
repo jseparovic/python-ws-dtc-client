@@ -23,12 +23,12 @@ class MarketDataUpdateBidAskCompact(BaseMessageType):
     def from_message_short(message_obj):
         packet = message_obj.get('F')
         return MarketDataUpdateBidAskCompact(
-             bid_price=packet[0],
-             bid_quantity=packet[1],
-             ask_price=packet[2],
-             ask_quantity=packet[3],
-             date_time=packet[4],
-             symbol_id=packet[5]
+             symbol_id=packet[0],
+             bid_price=packet[1],
+             bid_quantity=packet[2],
+             ask_price=packet[3],
+             ask_quantity=packet[4],
+             date_time=packet[5]
         )
 
     @staticmethod

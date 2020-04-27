@@ -1,25 +1,30 @@
 import collections
 import json
+import os
 import signal
 import sys
 import time
 from typing import List
 
 import websocket  # pip install websocket_client
+from geventwebsocket.exceptions import WebSocketError
 
-from dtc.enums.request_action_enum import RequestActionEnum
-from dtc.message_types.market_data_request import MarketDataRequest
-from dtc.message_types.market_data_snapshot import MarketDataSnapshot
-from lib.symbol_util import get_symbol_id
-from rest.rest_server import RESTServer
 from dtc.enums.logon_status_enum import LogonStatusEnum
+from dtc.enums.request_action_enum import RequestActionEnum
 from dtc.enums.trade_mode_enum import TradeModeEnum
 from dtc.message_types.heartbeat import Heartbeat
+from dtc.message_types.historical_price_data_request import HistoricalPriceDataRequest
 from dtc.message_types.logon_request import LogonRequest
 from dtc.message_types.logon_response import LogonResponse
+from dtc.message_types.market_data_request import MarketDataRequest
+from dtc.message_types.market_data_snapshot import MarketDataSnapshot
 from dtc.util.message_util import MessageUtil
+from dtc_client.data_message_types import MARKET_DATA_MESSAGE_TYPES, MARKET_DEPTH_MESSAGE_TYPES, HISTORICAL_DATA_MESSAGE_TYPES
+from dtc_client.enums import SubscriptionDataType
 from lib.base_message_type import BaseMessageType
 from lib.error import LogonError, InvalidArgumentsError, RequestTimeoutError
+from lib.symbol_util import get_symbol_id
+from rest.rest_server import RESTServer
 
 try:
     import thread
@@ -38,6 +43,8 @@ PROTOCOL_VERSION = 8
 RESPONSE_TIMEOUT_MILLIS = 2000
 
 PRETTY = True
+DEFAULT_LOG_DATA = False
+LOG_DATA = 'LOG_DATA'
 
 REQUEST_ID = 'RequestID'
 TOTAL_NUMBER_MESSAGES = 'TotalNumberMessages'
@@ -67,14 +74,16 @@ class Response:
 class Subscription:
     ws = None
     symbol = None
+    data_type = None
 
-    def __init__(self, ws, symbol, symbol_id):
+    def __init__(self, ws, symbol, symbol_id, data_type):
         self.ws = ws
         self.symbol = symbol
         self.symbol_id = symbol_id
+        self.data_type = data_type
 
     def equals(self, s):
-        return self.ws == s.ws and self.symbol == s.symbol
+        return self.ws == s.ws and self.symbol == s.symbol and self.data_type == s.data_type
 
 
 class DTCClient:
@@ -100,14 +109,15 @@ class DTCClient:
         self.trade_mode = TradeModeEnum.TRADE_MODE_LIVE if self.args.live else TradeModeEnum.TRADE_MODE_SIMULATED
         self.rest_server = RESTServer()
         self.rest_port = DEFAULT_REST_PORT if not self.args.restport else self.args.restport
+        self.log_data = os.getenv(LOG_DATA) if os.getenv(LOG_DATA) and os.getenv(LOG_DATA) == 1 else DEFAULT_LOG_DATA
 
     def exit(self, signum, frame):
         self.stop = True
         sys.exit(0)
 
-    def subscriptions_exist_for_symbol(self, symbol):
+    def subscriptions_exist_for_symbol(self, symbol, data_type):
         for s in self.subscriptions:
-            if s.symbol == symbol:
+            if s.symbol == symbol and s.data_type == data_type:
                 return True
         return False
 
@@ -120,12 +130,12 @@ class DTCClient:
     def log_subscriptions(self):
         subs = []
         for s in self.subscriptions:
-            subs.append({'symbol': s.symbol})
-        logging.debug(Util.json_dumps(subs))
+            subs.append({'symbol': s.symbol, 'dataType': s.data_type})
+        logging.debug("Subscriptions: %s" % Util.json_dumps(subs))
 
-    def market_data_subscribe(self, ws, symbol):
+    def data_subscribe(self, ws, symbol, data_type, record_interval=None, max_days_to_return=None):
         self.symbols[symbol] = get_symbol_id(symbol)
-        subscription = Subscription(ws, symbol, self.symbols[symbol])
+        subscription = Subscription(ws, symbol, self.symbols[symbol], data_type)
 
         # check for existing subscription
         if self.subscriptions_exist_for_socket(subscription):
@@ -133,13 +143,10 @@ class DTCClient:
             self.log_subscriptions()
             return True
 
-        if not self.subscriptions_exist_for_symbol(symbol):
+        if not self.subscriptions_exist_for_symbol(symbol, data_type):
             # only subscribe to the server once for all clients
-            self.send(
-                MarketDataRequest(
-                    request_action=RequestActionEnum.SUBSCRIBE,
-                    symbol_id=self.symbols[symbol],
-                    symbol=symbol))
+            self.send_data_request(
+                RequestActionEnum.SUBSCRIBE, data_type, symbol, record_interval, max_days_to_return)
 
         self.subscriptions.append(subscription)
         self.log_subscriptions()
@@ -153,13 +160,30 @@ class DTCClient:
         for i in ix_to_delete:
             del self.subscriptions[i]
 
-    def market_data_unsubscribe_all_for_socket(self, ws):
+    def data_unsubscribe_all_for_socket(self, ws):
         for s in self.subscriptions:
             if s.ws == ws:
-                self.market_data_unsubscribe(ws, s.symbol)
+                self.data_unsubscribe(ws, s.symbol, s.data_type)
 
-    def market_data_unsubscribe(self, ws, symbol):
-        subscription = Subscription(ws, symbol, self.symbols[symbol])
+    def send_data_request(self, request_action, data_type, symbol, record_interval=None, max_days_to_return=None):
+        if data_type == SubscriptionDataType.MARKET:
+            self.send(
+                MarketDataRequest(
+                    request_action=request_action,
+                    symbol_id=self.symbols[symbol],
+                    symbol=symbol))
+        elif data_type == SubscriptionDataType.HISTORICAL:
+            self.send(
+                HistoricalPriceDataRequest(
+                    request_action=request_action,
+                    symbol_id=self.symbols[symbol],
+                    symbol=symbol,
+                    record_interval=record_interval,
+                    max_days_to_return=max_days_to_return,
+                ))
+
+    def data_unsubscribe(self, ws, symbol, data_type, record_interval=None, max_days_to_return=None):
+        subscription = Subscription(ws, symbol, self.symbols[symbol], data_type)
         if not self.subscriptions_exist_for_socket(subscription):
             logging.debug("Subscription does not exist.")
             self.log_subscriptions()
@@ -167,13 +191,11 @@ class DTCClient:
 
         self.remove_subscription(subscription)
 
-        if not self.subscriptions_exist_for_symbol(symbol):
+        if not self.subscriptions_exist_for_symbol(symbol, data_type):
             # only unsubscribe to the server once for all clients
-            self.send(
-                MarketDataRequest(
-                    request_action=RequestActionEnum.UNSUBSCRIBE,
-                    symbol_id=self.symbols[symbol],
-                    symbol=symbol))
+            self.send_data_request(
+                RequestActionEnum.UNSUBSCRIBE, data_type, symbol, record_interval, max_days_to_return)
+
         self.log_subscriptions()
         return True
 
@@ -201,9 +223,27 @@ class DTCClient:
         else:
             raise LogonError
 
+    @staticmethod
+    def is_data(message):
+        return message.Type in MARKET_DATA_MESSAGE_TYPES + MARKET_DEPTH_MESSAGE_TYPES + HISTORICAL_DATA_MESSAGE_TYPES
+
+    @staticmethod
+    def is_market_data(message):
+        return message.Type in MARKET_DATA_MESSAGE_TYPES
+
+    @staticmethod
+    def is_market_depth(message):
+        return message.Type in MARKET_DEPTH_MESSAGE_TYPES
+
+    @staticmethod
+    def is_historical_data(message):
+        return message.Type in HISTORICAL_DATA_MESSAGE_TYPES
+
     def on_message(self, message_text):
         message = MessageUtil.parse_incoming_message(message_text)
-        logging.debug('Received %s:\n%s' % (message.get_message_type_name(), message.to_JSON(pretty=PRETTY)))
+
+        if self.log_data or not self.is_data(message):
+            logging.debug('Received %s:\n%s' % (message.get_message_type_name(), message.to_JSON(pretty=PRETTY)))
 
         message_obj = json.loads(message.to_JSON())
 
@@ -241,18 +281,23 @@ class DTCClient:
                         current_date_time=time.time(),
                     ))
             else:
-                if isinstance(message, MarketDataSnapshot):
-                    marketDataSnapshot: MarketDataSnapshot = message
-                    # check WS subscriptions
+                if self.is_market_data(message):
+                    # Send to Market Data Subscriptions
                     for s in self.subscriptions:
-                        if s.symbol_id == marketDataSnapshot.SymbolID:
+                        if s.symbol_id == message.SymbolID and s.data_type == SubscriptionDataType.MARKET:
                             # Add the symbol to the response and sort keys
-                            result = json.loads(marketDataSnapshot.to_JSON())
+                            result = json.loads(message.to_JSON())
                             result[SYMBOL] = s.symbol
                             result = collections.OrderedDict(sorted(result.items()))
-                            s.ws.send(json.dumps(result, indent=4))
+                            try:
+                                s.ws.send(json.dumps(result, indent=4))
+                            except WebSocketError as e:
+                                logging.warning(e)
+                                self.data_unsubscribe_all_for_socket(s.ws)
 
-                thread.start_new_thread(self.on_message_handler, (message,))
+                # send to the callback
+                if self.on_message_handler:
+                    thread.start_new_thread(self.on_message_handler, (message,))
 
     def on_error(self, error):
         logging.error('Error: %s' % error)

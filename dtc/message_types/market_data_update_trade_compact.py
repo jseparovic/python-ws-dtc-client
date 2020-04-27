@@ -21,11 +21,11 @@ class MarketDataUpdateTradeCompact(BaseMessageType):
     def from_message_short(message_obj):
         packet = message_obj.get('F')
         return MarketDataUpdateTradeCompact(
-             price=packet[0],
-             volume=packet[1],
-             date_time=packet[2],
-             symbol_id=packet[3],
-             at_bid_or_ask=packet[4]
+             symbol_id=packet[0],
+             at_bid_or_ask=packet[1],
+             price=packet[2],
+             volume=packet[3],
+             date_time=packet[4]
         )
 
     @staticmethod

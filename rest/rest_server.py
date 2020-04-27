@@ -4,6 +4,8 @@ from threading import Lock
 
 from flask import Flask, request, jsonify
 from flask_sockets import Sockets
+from gevent import pywsgi
+from geventwebsocket.handler import WebSocketHandler
 
 from dtc.message_types.account_balance_request import AccountBalanceRequest
 from dtc.message_types.current_positions_request import CurrentPositionsRequest
@@ -12,6 +14,7 @@ from dtc.message_types.historical_account_balances_request import HistoricalAcco
 from dtc.message_types.historical_order_fills_request import HistoricalOrderFillsRequest
 from dtc.message_types.security_definition_for_symbol_request import SecurityDefinitionForSymbolRequest
 from dtc.message_types.trade_accounts_request import TradeAccountsRequest
+from dtc_client.enums import SubscriptionDataType
 from lib.error import MethodNotAllowedError, InvalidArgumentsError, RequestTimeoutError
 from rest.api import API
 
@@ -52,10 +55,10 @@ def market_data(ws):
                 symbol = request.get(_SYMBOL)
                 success = False
                 if action == _SUBSCRIBE:
-                    if dtc_client.market_data_subscribe(ws, symbol):
+                    if dtc_client.data_subscribe(ws, symbol, SubscriptionDataType.MARKET):
                         success = True
                 else:  # action == _UNSUBSCRIBE
-                    if dtc_client.market_data_unsubscribe(ws, symbol):
+                    if dtc_client.data_unsubscribe(ws, symbol, SubscriptionDataType.MARKET):
                         success = True
 
                 message = {_ACTION: action, _SYMBOL: symbol, _SUCCESS: success}
@@ -67,7 +70,38 @@ def market_data(ws):
             logging.debug(e)
             ws.closed
 
-    dtc_client.market_data_unsubscribe_all_for_socket(ws)
+    dtc_client.data_unsubscribe_all_for_socket(ws)
+
+
+@sockets.route(API.API_PREFIX + API.HISTORICAL_PRICE_DATA)
+def historical__price_data(ws):
+    logging.info('ws connected')
+    while not ws.closed:
+        try:
+            request = json.loads(ws.receive())
+            action = request.get(_ACTION)
+
+            if action in [_SUBSCRIBE, _UNSUBSCRIBE]:
+                symbol = request.get(_SYMBOL)
+                success = False
+                if action == _SUBSCRIBE:
+                    if dtc_client.data_subscribe(ws, symbol, SubscriptionDataType.HISTORICAL):
+                        success = True
+                else:  # action == _UNSUBSCRIBE
+                    if dtc_client.data_unsubscribe(ws, symbol, SubscriptionDataType.HISTORICAL):
+                        success = True
+
+                message = {_ACTION: action, _SYMBOL: symbol, _SUCCESS: success}
+                ws.send(json.dumps(message))
+            else:
+                ws.send(json.dumps(
+                    {'error': 'unknown_action', 'details': 'action=subscribe|unsubscribe, symbol=symbol'}))
+        except Exception as e:
+            logging.debug(e)
+            ws.closed
+
+    dtc_client.data_unsubscribe_all_for_socket(ws)
+
 
 
 def handle_request(json):
@@ -282,8 +316,6 @@ class RESTServer:
         global dtc_client
         dtc_client = _dtc_client
 
-        from gevent import pywsgi
-        from geventwebsocket.handler import WebSocketHandler
         server = pywsgi.WSGIServer(('0.0.0.0', _rest_port), app, handler_class=WebSocketHandler)
         server.serve_forever()
 

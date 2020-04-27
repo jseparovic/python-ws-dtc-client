@@ -11,3 +11,4 @@ class API:
     TRADE_ACCOUNTS = '/tradeaccounts'
 
     MARKET_DATA = '/marketdata'
+    HISTORICAL_PRICE_DATA = '/historicalpricedata'
