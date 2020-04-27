@@ -12,6 +12,7 @@ from dtc.message_types.current_positions_request import CurrentPositionsRequest
 from dtc.message_types.exchange_list_request import ExchangeListRequest
 from dtc.message_types.historical_account_balances_request import HistoricalAccountBalancesRequest
 from dtc.message_types.historical_order_fills_request import HistoricalOrderFillsRequest
+from dtc.message_types.historical_price_data_request import HistoricalPriceDataRequest
 from dtc.message_types.security_definition_for_symbol_request import SecurityDefinitionForSymbolRequest
 from dtc.message_types.trade_accounts_request import TradeAccountsRequest
 from dtc_client.enums import SubscriptionDataType
@@ -31,8 +32,11 @@ rest_server = None
 TRADE_ACCOUNT = 'TradeAccount'
 NUMBER_OF_DAYS = 'NumberOfDays'
 START_DATE_TIME = 'StartDateTime'
+END_DATE_TIME = 'EndDateTime'
 SYMBOL = 'Symbol'
 EXCHANGE = 'Exchange'
+RECORD_INTERVAL = 'RecordInterval'
+MAX_DAYS_TO_RETURN = 'MaxDaysToReturn'
 
 
 # Subscription keys
@@ -43,69 +47,43 @@ _SYMBOL = 'symbol'
 _SUCCESS = 'success'
 
 
+def ws_data_request(ws, subscription_type):
+    logging.info('ws connected')
+    while not ws.closed:
+        try:
+            request = json.loads(ws.receive())
+            action = request.get(_ACTION)
+
+            if action in [_SUBSCRIBE, _UNSUBSCRIBE]:
+                symbol = request.get(_SYMBOL)
+                success = False
+                if action == _SUBSCRIBE:
+                    if dtc_client.data_subscribe(ws, symbol, subscription_type):
+                        success = True
+                else:  # action == _UNSUBSCRIBE
+                    if dtc_client.data_unsubscribe(ws, symbol, subscription_type):
+                        success = True
+
+                message = {_ACTION: action, _SYMBOL: symbol, _SUCCESS: success}
+                ws.send(json.dumps(message))
+            else:
+                ws.send(json.dumps(
+                    {'error': 'unknown_action', 'details': 'action=subscribe|unsubscribe, symbol=symbol'}))
+        except Exception as e:
+            logging.debug(e)
+            ws.closed
+
+    dtc_client.data_unsubscribe_all_for_socket(ws)
+
+
 @sockets.route(API.API_PREFIX + API.MARKET_DATA)
 def market_data(ws):
-    logging.info('ws connected')
-    while not ws.closed:
-        try:
-            request = json.loads(ws.receive())
-            action = request.get(_ACTION)
-
-            if action in [_SUBSCRIBE, _UNSUBSCRIBE]:
-                symbol = request.get(_SYMBOL)
-                success = False
-                if action == _SUBSCRIBE:
-                    if dtc_client.data_subscribe(ws, symbol, SubscriptionDataType.MARKET):
-                        success = True
-                else:  # action == _UNSUBSCRIBE
-                    if dtc_client.data_unsubscribe(ws, symbol, SubscriptionDataType.MARKET):
-                        success = True
-
-                message = {_ACTION: action, _SYMBOL: symbol, _SUCCESS: success}
-                ws.send(json.dumps(message))
-            else:
-                ws.send(json.dumps(
-                    {'error': 'unknown_action', 'details': 'action=subscribe|unsubscribe, symbol=symbol'}))
-        except Exception as e:
-            logging.debug(e)
-            ws.closed
-
-    dtc_client.data_unsubscribe_all_for_socket(ws)
+    ws_data_request(ws, SubscriptionDataType.MARKET_DATA)
 
 
-@sockets.route(API.API_PREFIX + API.HISTORICAL_PRICE_DATA)
-def historical__price_data(ws):
-    logging.info('ws connected')
-    while not ws.closed:
-        try:
-            request = json.loads(ws.receive())
-            action = request.get(_ACTION)
-
-            if action in [_SUBSCRIBE, _UNSUBSCRIBE]:
-                symbol = request.get(_SYMBOL)
-                success = False
-                if action == _SUBSCRIBE:
-                    if dtc_client.data_subscribe(ws, symbol, SubscriptionDataType.HISTORICAL):
-                        success = True
-                else:  # action == _UNSUBSCRIBE
-                    if dtc_client.data_unsubscribe(ws, symbol, SubscriptionDataType.HISTORICAL):
-                        success = True
-
-                message = {_ACTION: action, _SYMBOL: symbol, _SUCCESS: success}
-                ws.send(json.dumps(message))
-            else:
-                ws.send(json.dumps(
-                    {'error': 'unknown_action', 'details': 'action=subscribe|unsubscribe, symbol=symbol'}))
-        except Exception as e:
-            logging.debug(e)
-            ws.closed
-
-    dtc_client.data_unsubscribe_all_for_socket(ws)
-
-
-
-def handle_request(json):
-    print('received json: ' + str(json))
+@sockets.route(API.API_PREFIX + API.MARKET_DEPTH)
+def market_data(ws):
+    ws_data_request(ws, SubscriptionDataType.MARKET_DEPTH)
 
 
 @app.errorhandler(InvalidArgumentsError)
@@ -296,6 +274,30 @@ def trade_accounts():
     )
     return jsonify(response)
 
+"""
+@app.route(API.API_PREFIX + API.HISTORICAL_PRICE_DATA)
+def historical_price_data():
+    record_interval = rest_server.get_query_param(RECORD_INTERVAL)
+    max_days_to_return = rest_server.get_query_param(MAX_DAYS_TO_RETURN, required=False)
+    start_date_time = rest_server.get_query_param(START_DATE_TIME, required=False)
+    end_date_time = rest_server.get_query_param(END_DATE_TIME, required=False)
+    if not max_days_to_return and not start_date_time:
+        raise InvalidArgumentsError('Either %s or %s must be specified' % (MAX_DAYS_TO_RETURN, START_DATE_TIME))
+
+    request_id = rest_server.get_next_request_id()
+
+    response = dtc_client.request_response(
+        request_id,
+        HistoricalPriceDataRequest(
+            request_id=request_id,
+            record_interval=record_interval,
+            start_date_time=start_date_time,
+            end_date_time=end_date_time,
+            max_days_to_return=max_days_to_return,
+        )
+    )
+    return jsonify(response)
+"""
 
 class RESTServer:
     def __init__(self):
