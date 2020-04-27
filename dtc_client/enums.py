@@ -1,6 +1,5 @@
 
 
 class SubscriptionDataType:
-    MARKET = "MARKET"
-    HISTORICAL = "HISTORICAL"
-
+    MARKET_DATA = "MARKET_DATA"
+    MARKET_DEPTH = "MARKET_DEPTH"

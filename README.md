@@ -114,9 +114,10 @@ If an API requires input, pass in query params (for example):
 ### WS API
 Support for Websocket server exists. Currently you can subscribe and unsubscribe to market data.
 
-Connect to the WS Server running on the REST port:
+Connect to the WS Server running on the REST port using one of the following urls:
 ```
 ws://localhost:8080/api/v1/marketdata
+ws://localhost:8080/api/v1/marketdepth
 ```
 
 To subscribe to data, Send a JSON message in the following format:

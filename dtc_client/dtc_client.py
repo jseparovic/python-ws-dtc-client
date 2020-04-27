@@ -3,6 +3,7 @@ import json
 import os
 import signal
 import sys
+import threading
 import time
 from typing import List
 
@@ -18,8 +19,10 @@ from dtc.message_types.logon_request import LogonRequest
 from dtc.message_types.logon_response import LogonResponse
 from dtc.message_types.market_data_request import MarketDataRequest
 from dtc.message_types.market_data_snapshot import MarketDataSnapshot
+from dtc.message_types.market_depth_request import MarketDepthRequest
 from dtc.util.message_util import MessageUtil
-from dtc_client.data_message_types import MARKET_DATA_MESSAGE_TYPES, MARKET_DEPTH_MESSAGE_TYPES, HISTORICAL_DATA_MESSAGE_TYPES
+from dtc_client.data_message_types import MARKET_DATA_MESSAGE_TYPES, MARKET_DEPTH_MESSAGE_TYPES, \
+    HISTORICAL_DATA_MESSAGE_TYPES
 from dtc_client.enums import SubscriptionDataType
 from lib.base_message_type import BaseMessageType
 from lib.error import LogonError, InvalidArgumentsError, RequestTimeoutError
@@ -72,22 +75,22 @@ class Response:
 
 
 class Subscription:
-    ws = None
+    client_ws = None
     symbol = None
     data_type = None
 
-    def __init__(self, ws, symbol, symbol_id, data_type):
-        self.ws = ws
+    def __init__(self, client_ws, symbol, symbol_id, data_type):
+        self.client_ws = client_ws
         self.symbol = symbol
         self.symbol_id = symbol_id
         self.data_type = data_type
 
     def equals(self, s):
-        return self.ws == s.ws and self.symbol == s.symbol and self.data_type == s.data_type
+        return self.client_ws == s.client_ws and self.symbol == s.symbol and self.data_type == s.data_type
 
 
 class DTCClient:
-    ws = None
+    dtc_ws = None
     url = None
     is_logon = False
     responses = {}
@@ -105,7 +108,7 @@ class DTCClient:
         self.args = self.parser.parse_args()
         self.check_args()
         self.url = 'ws://%s:%s' % (self.args.host, self.args.port)
-        logging.info('URL: %s' % self.url)
+        self.history_url = 'ws://%s:%s' % (self.args.host, self.args.historyport)
         self.trade_mode = TradeModeEnum.TRADE_MODE_LIVE if self.args.live else TradeModeEnum.TRADE_MODE_SIMULATED
         self.rest_server = RESTServer()
         self.rest_port = DEFAULT_REST_PORT if not self.args.restport else self.args.restport
@@ -133,9 +136,9 @@ class DTCClient:
             subs.append({'symbol': s.symbol, 'dataType': s.data_type})
         logging.debug("Subscriptions: %s" % Util.json_dumps(subs))
 
-    def data_subscribe(self, ws, symbol, data_type, record_interval=None, max_days_to_return=None):
+    def data_subscribe(self, client_ws, symbol, data_type, num_levels=10):
         self.symbols[symbol] = get_symbol_id(symbol)
-        subscription = Subscription(ws, symbol, self.symbols[symbol], data_type)
+        subscription = Subscription(client_ws, symbol, self.symbols[symbol], data_type)
 
         # check for existing subscription
         if self.subscriptions_exist_for_socket(subscription):
@@ -146,7 +149,7 @@ class DTCClient:
         if not self.subscriptions_exist_for_symbol(symbol, data_type):
             # only subscribe to the server once for all clients
             self.send_data_request(
-                RequestActionEnum.SUBSCRIBE, data_type, symbol, record_interval, max_days_to_return)
+                RequestActionEnum.SUBSCRIBE, data_type, symbol, num_levels)
 
         self.subscriptions.append(subscription)
         self.log_subscriptions()
@@ -160,30 +163,26 @@ class DTCClient:
         for i in ix_to_delete:
             del self.subscriptions[i]
 
-    def data_unsubscribe_all_for_socket(self, ws):
+    def data_unsubscribe_all_for_socket(self, client_ws):
         for s in self.subscriptions:
-            if s.ws == ws:
-                self.data_unsubscribe(ws, s.symbol, s.data_type)
+            if s.client_ws == client_ws:
+                self.data_unsubscribe(client_ws, s.symbol, s.data_type)
 
-    def send_data_request(self, request_action, data_type, symbol, record_interval=None, max_days_to_return=None):
-        if data_type == SubscriptionDataType.MARKET:
-            self.send(
-                MarketDataRequest(
-                    request_action=request_action,
-                    symbol_id=self.symbols[symbol],
-                    symbol=symbol))
-        elif data_type == SubscriptionDataType.HISTORICAL:
-            self.send(
-                HistoricalPriceDataRequest(
-                    request_action=request_action,
-                    symbol_id=self.symbols[symbol],
-                    symbol=symbol,
-                    record_interval=record_interval,
-                    max_days_to_return=max_days_to_return,
-                ))
+    def send_data_request(self, request_action, data_type, symbol, num_levels=10):
+        if data_type == SubscriptionDataType.MARKET_DATA:
+            self.send(MarketDataRequest(
+                          request_action=request_action,
+                          symbol_id=self.symbols[symbol],
+                          symbol=symbol))
+        elif data_type == SubscriptionDataType.MARKET_DEPTH:
+            self.send(MarketDepthRequest(
+                          request_action=request_action,
+                          symbol_id=self.symbols[symbol],
+                          symbol=symbol,
+                          num_levels=num_levels))
 
-    def data_unsubscribe(self, ws, symbol, data_type, record_interval=None, max_days_to_return=None):
-        subscription = Subscription(ws, symbol, self.symbols[symbol], data_type)
+    def data_unsubscribe(self, client_ws, symbol, data_type):
+        subscription = Subscription(client_ws, symbol, self.symbols[symbol], data_type)
         if not self.subscriptions_exist_for_socket(subscription):
             logging.debug("Subscription does not exist.")
             self.log_subscriptions()
@@ -194,23 +193,31 @@ class DTCClient:
         if not self.subscriptions_exist_for_symbol(symbol, data_type):
             # only unsubscribe to the server once for all clients
             self.send_data_request(
-                RequestActionEnum.UNSUBSCRIBE, data_type, symbol, record_interval, max_days_to_return)
+                RequestActionEnum.UNSUBSCRIBE, data_type, symbol)
 
         self.log_subscriptions()
         return True
 
-    def send(self, message: BaseMessageType):
+    def send(self, message: BaseMessageType, ws=None):
+        if not ws:
+            ws = self.dtc_ws
         logging.debug('Sending %s:\n%s' % (message.get_message_type_name(), message.to_JSON(pretty=PRETTY)))
-        self.ws.send(message.to_JSON(logging=False) + '\x00')  # must be null terminated
+        ws.send(message.to_JSON(logging=False) + '\x00')  # must be null terminated
 
     def request_response(self, request_id, request):
-        if self.is_logon:
+        if isinstance(request, HistoricalPriceDataRequest):
+            # Connect to the history_port
+            # Login
+            # Retrieve Data
+            # Close connection
+            pass
+        elif self.is_logon:
             self.send(request)
             self.responses[request_id] = Response(request_id)
             start_time = time.time()
             while not self.responses[request_id].is_complete():
                 time.sleep(0.0001)
-                if time.time() > start_time + RESPONSE_TIMEOUT_MILLIS/1000:
+                if time.time() > start_time + RESPONSE_TIMEOUT_MILLIS / 1000:
                     logging.warning('Request %s has timed out' % request_id)
                     del self.responses[request_id]
                     raise RequestTimeoutError
@@ -276,45 +283,46 @@ class DTCClient:
 
             elif isinstance(message, Heartbeat):
                 # send heartbeat back
-                self.send(
-                    Heartbeat(
-                        current_date_time=time.time(),
-                    ))
+                self.send(Heartbeat(
+                              current_date_time=time.time(),
+                          ))
             else:
-                if self.is_market_data(message):
+                if self.is_market_data(message) or self.is_market_depth(message):
                     # Send to Market Data Subscriptions
                     for s in self.subscriptions:
-                        if s.symbol_id == message.SymbolID and s.data_type == SubscriptionDataType.MARKET:
+                        if s.symbol_id == message.SymbolID \
+                                and s.data_type in [SubscriptionDataType.MARKET_DATA,
+                                                    SubscriptionDataType.MARKET_DEPTH]:
                             # Add the symbol to the response and sort keys
                             result = json.loads(message.to_JSON())
                             result[SYMBOL] = s.symbol
                             result = collections.OrderedDict(sorted(result.items()))
                             try:
-                                s.ws.send(json.dumps(result))
+                                s.client_ws.send(json.dumps(result))
                             except WebSocketError as e:
                                 logging.warning(e)
-                                self.data_unsubscribe_all_for_socket(s.ws)
+                                self.data_unsubscribe_all_for_socket(s.client_ws)
 
                 # send to the callback
                 if self.on_message_handler:
                     thread.start_new_thread(self.on_message_handler, (message,))
 
     def on_error(self, error):
-        logging.error('Error: %s' % error)
+        logging.error('Error %s' % error)
 
     def on_close(self):
-        logging.info('Closing')
+        logging.info('On close')
 
     def on_open(self):
-        self.send(
-            LogonRequest(
-                username=self.args.username,
-                password=self.args.password,
-                trade_mode=self.trade_mode,
-                protocol_version=PROTOCOL_VERSION,
-                heartbeat_interval_in_seconds=HEARTBEAT,
-                client_name=CLIENT_NAME
-            ))
+        logging.info("On open")
+        self.send(LogonRequest(
+                      username=self.args.username,
+                      password=self.args.password,
+                      trade_mode=self.trade_mode,
+                      protocol_version=PROTOCOL_VERSION,
+                      heartbeat_interval_in_seconds=HEARTBEAT,
+                      client_name=CLIENT_NAME
+                  ))
 
     def start(self):
         def on_message(ws, message):
@@ -331,20 +339,21 @@ class DTCClient:
 
         while True:
             # websocket.enableTrace(True)
-            self.ws = websocket.WebSocketApp(self.url,
-                                             on_message=on_message,
-                                             on_error=on_error,
-                                             on_close=on_close)
-            self.ws.on_open = on_open
+            logging.info("Connecting to %s" % self.url)
+            self.dtc_ws = websocket.WebSocketApp(self.url,
+                                                 on_message=on_message,
+                                                 on_error=on_error,
+                                                 on_close=on_close)
+            self.dtc_ws.on_open = on_open
             try:
-                self.ws.run_forever()
+                self.dtc_ws.run_forever()
             except BaseException as e:
                 if self.stop:
                     break
                 else:
                     raise e
 
-            logging.error('Server stopped. Restarting...')
+            logging.error('Connection %s stopped. Restarting...' % self.url)
             time.sleep(5)
 
     def check_args(self):
@@ -359,7 +368,11 @@ class DTCClient:
                                  action='store',
                                  required=True)
         self.parser.add_argument('-p', '--port',
-                                 help='Websocket Port',
+                                 help='SC Listening Port',
+                                 action='store',
+                                 required=True)
+        self.parser.add_argument('-q', '--historyport',
+                                 help='SC Historical Data Port',
                                  action='store',
                                  required=True)
         self.parser.add_argument('-r', '--restport',
@@ -378,4 +391,3 @@ class DTCClient:
         self.parser.add_argument('-x', '--password',
                                  help='Server Password',
                                  action='store')
-
