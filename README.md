@@ -28,25 +28,25 @@ pip install CppHeaderParser
 
 ### Usage
 ```
-usage: example_client.py [-h] -n HOST -p PORT [-r RESTPORT] [-l] [-s]
-                         [-u USERNAME] [-x PASSWORD]
+usage: example_client.py [-h] -n HOST -p PORT -q HISTORYPORT [-r RESTPORT]
+                         [-l] [-s] [-u USERNAME] [-x PASSWORD]
 
 DTC Client
 
 optional arguments:
   -h, --help            show this help message and exit
   -n HOST, --host HOST  Websocket Host
-  -p PORT, --port PORT  Websocket Port
+  -p PORT, --port PORT  SC Listening Port
+  -q HISTORYPORT, --historyport HISTORYPORT
+                        SC Historical Data Port
   -r RESTPORT, --restport RESTPORT
-                        REST Server Port
+                        Local REST Server Port
   -l, --live            Live trading mode
   -s, --simulated       Simulated trading mode
   -u USERNAME, --username USERNAME
                         Server Username
   -x PASSWORD, --password PASSWORD
                         Server Password
-
-
 ```
 
 
