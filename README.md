@@ -130,7 +130,7 @@ To unsubscribe to data, Send a JSON message in the following format:
 ```
 
 ### WS Test
-https://www.screencast.com/t/fA4K6paHI2Z
+https://www.screencast.com/t/EzpC4V7MQ61
 
 
 ### Sample WS Output

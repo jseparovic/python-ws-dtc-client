@@ -290,7 +290,7 @@ class DTCClient:
                             result[SYMBOL] = s.symbol
                             result = collections.OrderedDict(sorted(result.items()))
                             try:
-                                s.ws.send(json.dumps(result, indent=4))
+                                s.ws.send(json.dumps(result))
                             except WebSocketError as e:
                                 logging.warning(e)
                                 self.data_unsubscribe_all_for_socket(s.ws)
